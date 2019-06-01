@@ -1,7 +1,7 @@
 # Simon Berens | Jason Tung
 ## Team Parsival
 
-###Features
+### Features
 * Treating knobs as variables
 * Set knob value from arbitrary equation and optional equation mode
 * Relative mode (default): value is substituted relative to starting frame of variable
