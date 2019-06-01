@@ -1,0 +1,52 @@
+# Clion stuff
+CMakeLists.txt
+cmake-build-debug
+.idea
+
+# my executable
+*.zzz
+
+# image files
+*.ppm
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# temp files
+*~
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.pyc
+*.class
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
