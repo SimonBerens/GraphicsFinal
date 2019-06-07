@@ -1,5 +1,5 @@
-#ifndef CURVES_DRAW_H
-#define CURVES_DRAW_H
+#ifndef DRAW_H
+#define DRAW_H
 
 #include "custom_matrices.h"
 #include "math_vec.h"

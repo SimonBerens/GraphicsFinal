@@ -1,5 +1,5 @@
-#ifndef MDL_SYMBOL_TABLE_H
-#define MDL_SYMBOL_TABLE_H
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
 
 #include "custom_matrices.h"
 
@@ -61,4 +61,4 @@ private:
 };
 
 
-#endif //MDL_SYMBOL_TABLE_H
+#endif //SYMBOL_TABLE_H

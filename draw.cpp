@@ -6,6 +6,8 @@
 #include "math_vec.h"
 #include "symbol_table.h"
 
+using namespace std;
+
 #define DEFAULT_COLOR Color(28, 237, 66)
 
 Frame::Frame(const int width, const int height) : width(width), height(height) {
@@ -14,7 +16,7 @@ Frame::Frame(const int width, const int height) : width(width), height(height) {
     for (int row = 0; row < height; ++row) {
         this->grid[row] = new Color[width];
         this->zbuf[row] = new double[width];
-        std::fill(this->zbuf[row], this->zbuf[row] + width, -DBL_MAX);
+        fill(this->zbuf[row], this->zbuf[row] + width, -DBL_MAX);
     }
 }
 
@@ -48,7 +50,7 @@ void Frame::clear() {
     for (int row = 0; row < height; ++row) {
         this->grid[row] = new Color[width];
         this->zbuf[row] = new double[width];
-        std::fill(this->zbuf[row], this->zbuf[row] + width, -DBL_MAX);
+        fill(this->zbuf[row], this->zbuf[row] + width, -DBL_MAX);
     }
 }
 
@@ -64,7 +66,7 @@ void Frame::write_to(FILE *f) {
     }
 }
 
-void Frame::save(const std::string &name) {
+void Frame::save(const string &name) {
     FILE *fd = popen(("convert - " + name).c_str(), "w");
     write_to(fd);
     fclose(fd);
@@ -78,7 +80,7 @@ inline void Frame::plot(int x, int y, double z, const Color &c) {
 }
 
 void Frame::draw_line(double x0d, double y0d, double z0, double x1d, double y1d, double z1, const Color &c) {
-    int x0 = std::round(x0d), y0 = std::round(y0d), x1 = std::round(x1d), y1 = std::round(y1d);
+    int x0 = round(x0d), y0 = round(y0d), x1 = round(x1d), y1 = round(y1d);
     int x, y, d, A, B;
     double z, dz;
     int dy_east, dy_northeast, dx_east, dx_northeast, d_east, d_northeast;
@@ -86,9 +88,9 @@ void Frame::draw_line(double x0d, double y0d, double z0, double x1d, double y1d,
 
     //swap points if going right -> left
     if (x0 > x1) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-        std::swap(z0, z1);
+        swap(x0, x1);
+        swap(y0, y1);
+        swap(z0, z1);
     }
 
     x = x0;
@@ -218,8 +220,8 @@ Color Frame::calculate_color(const Point &p0, const Point &p1, const Point &p2, 
 void Frame::draw_scanline(int x0, double z0, int x1, double z1, int y, const Color &c) {
     //swap if needed to assure left->right drawing
     if (x0 > x1) {
-        std::swap(x0, x1);
-        std::swap(z0, z1);
+        swap(x0, x1);
+        swap(z0, z1);
     }
 
     double delta_z;
@@ -237,8 +239,8 @@ void Frame::fill_triangle(const Point &p0, const Point &p1, const Point &p2, con
     Color c = calculate_color(p0, p1, p2, lighting);
 
     auto ycomp = [](const Point &p0, const Point &p1) -> bool { return p0.y == p1.y ? p0.x < p1.x : p0.y < p1.y; };
-    std::vector<Point> pts{p0, p1, p2};
-    std::sort(pts.begin(), pts.end(), ycomp);
+    vector<Point> pts{p0, p1, p2};
+    sort(pts.begin(), pts.end(), ycomp);
     int yb = pts[0].y, ym = pts[1].y, yt = pts[2].y;
     double xb = pts[0].x, xm = pts[1].x, xt = pts[2].x,
             zb = pts[0].z, zm = pts[1].z, zt = pts[2].z;

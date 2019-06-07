@@ -1,5 +1,5 @@
-#ifndef POLYGONS_MATH_VEC_H
-#define POLYGONS_MATH_VEC_H
+#ifndef MATH_VEC_H
+#define MATH_VEC_H
 
 #include <iostream>
 
@@ -28,4 +28,4 @@ struct Vec_3D {
 
 std::ostream &operator<<(std::ostream &strm, const Vec_3D &c);
 
-#endif //POLYGONS_MATH_VEC_H
+#endif //MATH_VEC_H

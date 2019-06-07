@@ -1,5 +1,5 @@
-#ifndef CURVES_CUSTOM_MATRICES_H
-#define CURVES_CUSTOM_MATRICES_H
+#ifndef CUSTOM_MATRICES_H
+#define CUSTOM_MATRICES_H
 
 #include <functional>
 #include "matrix.h"
@@ -71,4 +71,4 @@ struct TriangleMatrix : public PointMatrix {
 
 };
 
-#endif //CURVES_CUSTOM_MATRICES_H
+#endif //CUSTOM_MATRICES_H

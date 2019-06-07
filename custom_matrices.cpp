@@ -1,9 +1,8 @@
-#define _USE_MATH_DEFINES
-
 #include <cmath>
 #include <functional>
 #include "custom_matrices.h"
 
+using namespace std;
 
 PointMatrix::PointMatrix() : Matrix(4, 60) {}
 
@@ -25,7 +24,7 @@ void EdgeList::add_edge(double x0, double y0, double z0, double x1, double y1, d
     add_point(x1, y1, z1);
 }
 
-void EdgeList::add_parametric(const std::function<double(double)>& fx, const std::function<double(double)>& fy, double step) {
+void EdgeList::add_parametric(const function<double(double)>& fx, const function<double(double)>& fy, double step) {
     for (double t = 0; t < 1; t += step)
         add_edge(fx(t), fy(t), 0, fx(t + step), fy(t + step), 0);
 }
@@ -105,14 +104,14 @@ void Modifier::ident() {
         elem(row, row) = 1;
 }
 
-void Modifier::scale(const std::vector<double>& param_list) {
+void Modifier::scale(const vector<double>& param_list) {
     Modifier t;
     for (int i = 0; i < 3; ++i)
         t.elem(i, i) = param_list[i];
     mult(t);
 }
 
-void Modifier::move(const std::vector<double>& param_list) {
+void Modifier::move(const vector<double>& param_list) {
     Modifier t;
     for (int i = 0; i < 3; ++i)
         t.elem(i, 3) = param_list[i];

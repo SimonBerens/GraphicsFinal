@@ -1,5 +1,5 @@
-#ifndef CURVES_MATRIX_H
-#define CURVES_MATRIX_H
+#ifndef MATRIX_H
+#define MATRIX_H
 
 #include <vector>
 
@@ -29,4 +29,4 @@ struct Matrix {
     void mult(const Matrix &manip);
 };
 
-#endif //CURVES_MATRIX_H
+#endif //MATRIX_H

@@ -9,6 +9,8 @@
 #include "y.tab.h"
 #include "symbol_table.h"
 
+using namespace std;
+
 void kerchow() {
 
     // lighting defaults
@@ -22,7 +24,7 @@ void kerchow() {
 
     // first pass
     int frames = 0;
-    std::string basename("default");
+    string basename("default");
     bool vary_exists = false;
     for (int i = 0; i < lastop; ++i) {
         command cmd = op[i];
@@ -41,7 +43,7 @@ void kerchow() {
             frames = 1;
         for (int f = 0; f < frames; ++f) {
             Frame frame(500, 500);
-            std::stack<Modifier> cs_stack;
+            stack<Modifier> cs_stack;
             cs_stack.emplace();
             for (int i = 0; i < lastop; ++i) {
                 command cmd = op[i];
@@ -55,20 +57,20 @@ void kerchow() {
                         t.move({cmd.op.move.d[0], cmd.op.move.d[1], cmd.op.move.d[2]});
                         t.mult(cs_stack.top());
                         cs_stack.pop();
-                        cs_stack.push(std::move(t));
+                        cs_stack.push(move(t));
                     } else if (cmd.opcode == ROTATE) {
                         Modifier t;
                         Axis axis = cmd.op.rotate.axis == 0 ? X : cmd.op.rotate.axis == 1 ? Y : Z;
                         t.rot(axis, cmd.op.rotate.degrees);
                         t.mult(cs_stack.top());
                         cs_stack.pop();
-                        cs_stack.push(std::move(t));
+                        cs_stack.push(move(t));
                     } else if (cmd.opcode == SCALE) {
                         Modifier t;
                         t.scale({cmd.op.scale.d[0], cmd.op.scale.d[1], cmd.op.scale.d[2]});
                         t.mult(cs_stack.top());
                         cs_stack.pop();
-                        cs_stack.push(std::move(t));
+                        cs_stack.push(move(t));
                     } else if (cmd.opcode == BOX) {
                         TriangleMatrix t;
                         t.add_box(cmd.op.box.d0[0], cmd.op.box.d0[1], cmd.op.box.d0[2],
@@ -106,19 +108,19 @@ void kerchow() {
         }
         return;
     } else if (!frames) {
-        std::cout << "Uh oh vary present but no frames set" << std::endl;
+        cout << "Uh oh vary present but no frames set" << endl;
         return;
     }
     // second pass
 
-    std::vector<std::map<std::string, double>> knobs(frames);
+    vector<map<string, double>> knobs(frames);
     for (int i = 0; i < lastop; ++i) {
         command cmd = op[i];
         if (cmd.opcode == VARY) {
             int sf = cmd.op.vary.start_frame, ef = cmd.op.vary.end_frame;
             double sv = cmd.op.vary.start_val, ev = cmd.op.vary.end_val;
             if (sf < 0 || ef >= frames) {
-                std::cout << "Uh oh vary range invalid" << std::endl;
+                cout << "Uh oh vary range invalid" << endl;
                 return;
             }
 
@@ -135,9 +137,9 @@ void kerchow() {
     chdir("./build");
 
     for (int f = 0; f < frames; ++f) {
-        std::cout << "Frame: " << f << std::endl;
+        cout << "Frame: " << f << endl;
         Frame frame(500, 500);
-        std::stack<Modifier> cs_stack;
+        stack<Modifier> cs_stack;
         cs_stack.emplace();
         for (int i = 0; i < lastop; ++i) {
             command cmd = op[i];
@@ -154,7 +156,7 @@ void kerchow() {
                     t.move({cmd.op.move.d[0] * scale, cmd.op.move.d[1] * scale, cmd.op.move.d[2] * scale});
                     t.mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(std::move(t));
+                    cs_stack.push(move(t));
                 } else if (cmd.opcode == ROTATE) {
 
                     Modifier t;
@@ -166,7 +168,7 @@ void kerchow() {
                     t.rot(axis, cmd.op.rotate.degrees * scale);
                     t.mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(std::move(t));
+                    cs_stack.push(move(t));
                 } else if (cmd.opcode == SCALE) {
                     Modifier t;
                     double scale = 1;
@@ -175,7 +177,7 @@ void kerchow() {
                     t.scale({cmd.op.scale.d[0] * scale, cmd.op.scale.d[1] * scale, cmd.op.scale.d[2] * scale});
                     t.mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(std::move(t));
+                    cs_stack.push(move(t));
                 } else if (cmd.opcode == BOX) {
                     TriangleMatrix t;
                     t.add_box(cmd.op.box.d0[0], cmd.op.box.d0[1], cmd.op.box.d0[2],
@@ -202,13 +204,13 @@ void kerchow() {
                     frame.draw_lines(t);
                 }
             }
-            std::stringstream fname;
-            fname << std::setfill('0') << std::setw(3) << f;
+            stringstream fname;
+            fname << setfill('0') << setw(3) << f;
             frame.save(basename + fname.str());
         }
     }
     chdir("..");
-    system((std::string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
+    system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
 
 
 }

@@ -1,5 +1,5 @@
-#ifndef CURVES_COLOR_H
-#define CURVES_COLOR_H
+#ifndef COLOR_H
+#define COLOR_H
 
 #include <fstream>
 #include "math_vec.h"
@@ -22,4 +22,4 @@ struct Color {
 
 std::ostream &operator<<(std::ostream &strm, Color &c);
 
-#endif //CURVES_COLOR_H
+#endif //COLOR_H

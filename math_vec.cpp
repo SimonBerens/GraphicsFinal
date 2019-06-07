@@ -1,6 +1,8 @@
 #include <cmath>
 #include "math_vec.h"
 
+using namespace std;
+
 Vec_3D::Vec_3D(double x, double y, double z) : x(x), y(y), z(z) {}
 
 Vec_3D Vec_3D::operator+(const Vec_3D &other) const {
@@ -32,6 +34,6 @@ Vec_3D operator*(double c, const Vec_3D &v) {
     return Vec_3D(c * v.x, c * v.y, c * v.z);
 }
 
-std::ostream &operator<<(std::ostream &strm, const Vec_3D &c) {
+ostream &operator<<(ostream &strm, const Vec_3D &c) {
     return strm << c.x << " " << c.y << " " << c.z << " ";
 }
