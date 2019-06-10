@@ -6,8 +6,10 @@
     #include "symbol_table.h"
     #include "command.h"
     #include "code_generator.h"
-    #include "custom_matrices.h"
-
+    #include "matrices/m_matri.h"
+    #include "matrices/rm.h"
+    #include "matrices/sm.h"
+    #include "matrices/tm.h"
 
     extern int yylex();
     extern int yyparse();
@@ -21,7 +23,7 @@
     struct light *l;
     struct constants *c;
     struct command op[MAX_COMMANDS];
-    Modifier *m;
+    M_Matrix *m;
     int lastop=0;
     int lineno=0;
 %}
@@ -78,7 +80,7 @@ SPHERE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.sphere.d[3] = 0;
   op[lastop].op.sphere.r = $5;
   op[lastop].op.sphere.constants = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.sphere.cs = s->add_symbol($6,SYM_MATRIX,m);
   lastop++;
 }|
@@ -106,7 +108,7 @@ SPHERE STRING DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.sphere.d[3] = 0;
   op[lastop].op.sphere.r = $6;
   op[lastop].op.sphere.constants = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.sphere.cs = s->add_symbol($7,SYM_MATRIX,m);
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.sphere.constants = s->add_symbol($2,SYM_CONSTANTS,c);
@@ -139,7 +141,7 @@ TORUS DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.torus.r0 = $5;
   op[lastop].op.torus.r1 = $6;
   op[lastop].op.torus.constants = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.torus.cs = s->add_symbol($7,SYM_MATRIX,m);
   lastop++;
 }|
@@ -171,7 +173,7 @@ TORUS STRING DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.torus.r1 = $7;
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.torus.constants = s->add_symbol($2,SYM_CONSTANTS,c);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.torus.cs = s->add_symbol($8,SYM_MATRIX,m);
 
   lastop++;
@@ -208,7 +210,7 @@ BOX DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.box.d1[3] = 0;
 
   op[lastop].op.box.constants = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.box.cs = s->add_symbol($8,SYM_MATRIX,m);
   lastop++;
 }|
@@ -243,7 +245,7 @@ BOX STRING DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.box.d1[3] = 0;
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.box.constants = s->add_symbol($2,SYM_CONSTANTS,c);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.box.cs = s->add_symbol($9,SYM_MATRIX,m);
 
   lastop++;
@@ -280,7 +282,7 @@ LINE DOUBLE DOUBLE DOUBLE STRING DOUBLE DOUBLE DOUBLE
   op[lastop].op.line.p1[2] = $8;
   op[lastop].op.line.p1[3] = 0;
   op[lastop].op.line.constants = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs0 = s->add_symbol($5,SYM_MATRIX,m);
   op[lastop].op.line.cs1 = NULL;
   lastop++;
@@ -299,7 +301,7 @@ LINE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.line.p1[3] = 0;
   op[lastop].op.line.constants = NULL;
   op[lastop].op.line.cs0 = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs1 = s->add_symbol($8,SYM_MATRIX,m);
   lastop++;
 }|
@@ -316,9 +318,9 @@ LINE DOUBLE DOUBLE DOUBLE STRING DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.line.p1[2] = $8;
   op[lastop].op.line.p1[3] = 0;
   op[lastop].op.line.constants = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs0 = s->add_symbol($5,SYM_MATRIX,m);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs1 = s->add_symbol($9,SYM_MATRIX,m);
   lastop++;
 }|
@@ -355,7 +357,7 @@ LINE STRING DOUBLE DOUBLE DOUBLE STRING DOUBLE DOUBLE DOUBLE
   op[lastop].op.line.p1[3] = 0;
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.line.constants = s->add_symbol($2,SYM_CONSTANTS,c);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs0 = s->add_symbol($6,SYM_MATRIX,m);
   op[lastop].op.line.cs1 = NULL;
   lastop++;
@@ -375,7 +377,7 @@ LINE STRING DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.line.constants = s->add_symbol($2,SYM_CONSTANTS,c);
   op[lastop].op.line.cs0 = NULL;
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs1 = s->add_symbol($9,SYM_MATRIX,m);
   op[lastop].op.line.cs0 = NULL;
   lastop++;
@@ -394,9 +396,9 @@ LINE STRING DOUBLE DOUBLE DOUBLE STRING DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.line.p1[3] = 0;
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.line.constants = s->add_symbol($2,SYM_CONSTANTS,c);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs0 = s->add_symbol($6,SYM_MATRIX,m);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.line.cs1 = s->add_symbol($10,SYM_MATRIX,m);
   lastop++;
 }|
@@ -427,7 +429,7 @@ MESH STRING CO STRING STRING
   strcpy(op[lastop].op.mesh.name,$4);
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.mesh.constants = s->add_symbol($2,SYM_CONSTANTS,c);
-  m = new Modifier;
+  m = new M_Matrix;
   op[lastop].op.mesh.cs = s->add_symbol($5,SYM_MATRIX,m);
   lastop++;
 } |
@@ -633,7 +635,7 @@ SAVE_COORDS STRING
 {
   lineno++;
   op[lastop].opcode = SAVE_COORDS;
-  m = m = new Modifier;;
+  m = new M_Matrix;;
   op[lastop].op.save_coordinate_system.p = s->add_symbol($2,SYM_MATRIX,m);
   lastop++;
 }|

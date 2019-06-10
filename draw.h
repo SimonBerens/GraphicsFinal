@@ -1,16 +1,14 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-#include "custom_matrices.h"
-#include "math_vec.h"
-#include "color.h"
+#include "scalables/color.h"
 #include "symbol_table.h"
+#include "scalables/P.h"
+#include "scalables/V.h"
+#include "matrices/EdgeList.h"
+#include "matrices/face.h"
 
 class Frame {
-    const int width;
-    const int height;
-    Color **grid;
-    double **zbuf;
 public:
     Frame(int width, int height);
 
@@ -30,20 +28,25 @@ public:
 
     void draw_line(double x0, double y0, double z0, double x1, double y1, double z1, const Color &c);
 
-    void draw_line(const Point &p0, const Point &p1, const Color &c);
+    void draw_line(const P &p0, const P &p1, const Color &c);
 
-    void draw_lines(const EdgeList &el);
+    void draw_lines(const EL &el);
 
-    static Vec_3D surface_normal(const Point &p0, const Point &p1, const Point &p2);
+    static V surface_normal(const P &p0, const P &p1, const P &p2);
 
-    void draw_faces(const TriangleMatrix &tm, constants *lighting);
+    void draw_faces(const FL &tm, constants *lighting);
 
-    static Color calculate_color(const Point &p0, const Point &p1, const Point &p2, constants *lighting);
+    static Color calculate_color(const P &p0, const P &p1, const P &p2, constants *lighting);
 
     void draw_scanline(int x0, double z0, int x1, double z1, int y, const Color &c);
 
-    void fill_triangle(const Point &p0, const Point &p1, const Point &p2, constants *lighting);
+    void fill_triangle(const P &p0, const P &p1, const P &p2, constants *lighting);
 
+private:
+    const int width;
+    const int height;
+    Color **grid;
+    double **zbuf;
 };
 
-#endif //CURVES_DRAW_H
+#endif //DRAW_H

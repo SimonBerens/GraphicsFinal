@@ -3,14 +3,14 @@
 #include <random>
 #include <iostream>
 #include "draw.h"
-#include "math_vec.h"
 #include "symbol_table.h"
+#include "scalables/V.h"
 
 using namespace std;
 
 #define DEFAULT_COLOR Color(28, 237, 66)
 
-Frame::Frame(const int width, const int height) : width(width), height(height) {
+Frame::Frame(const int width, const int height) : width(width), height(height) { // todo array this shit
     this->grid = new Color *[height];
     zbuf = new double *[height];
     for (int row = 0; row < height; ++row) {
@@ -60,7 +60,7 @@ void Frame::write_to(FILE *f) {
     for (int y = getHeight() - 1; y >= 0; y--) {
         for (int x = 0; x < getWidth(); x++) {
             c = &grid[y][x];
-            fprintf(f, "%d %d %d ", c->red, c->green, c->blue);
+            fprintf(f, "%d %d %d ", Color::bound(c->red()), Color::bound(c->green()), Color::bound(c->blue()));
         }
         fprintf(f, "\n");
     }
@@ -163,58 +163,52 @@ void Frame::draw_line(double x0d, double y0d, double z0, double x1d, double y1d,
     plot(x, y, z, c);
 }
 
-void Frame::draw_line(const Point &p0, const Point &p1, const Color &c) {
-    draw_line(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, c);
+void Frame::draw_line(const P &p0, const P &p1, const Color &c) {
+    draw_line(p0.x(), p0.y(), p0.z(), p1.x(), p1.y(), p1.z(), c);
 }
 
-void Frame::draw_lines(const EdgeList &el) {
-    for (int i = 0; i < el.getCols(); i += 2)
-        draw_line(el.get_point(i), el.get_point(i + 1), DEFAULT_COLOR);
+void Frame::draw_lines(const EL &el) {
+    for (int i = 0; i < el.cols(); i += 2)
+        draw_line(el[i], el[i + 1], DEFAULT_COLOR);
 }
 
-Vec_3D Frame::surface_normal(const Point &p0, const Point &p1, const Point &p2) {
-    Vec_3D a = p1.vec - p0.vec, b = p2.vec - p0.vec;
-    return a.cross(b);
+V Frame::surface_normal(const P &p0, const P &p1, const P &p2) {
+    V a = P(p1 - p0), b = P(p2 - p0);
+    return cross(a, b);
 }
 
 
-void Frame::draw_faces(const TriangleMatrix &tm, constants *lighting) {
-    for (int i = 0; i < tm.getCols(); i += 3) {
-        Vec_3D normal = surface_normal(tm.get_point(i), tm.get_point(i + 1), tm.get_point(i + 2));
-        Vec_3D view(0, 0, 1);
-        if (view.dot(normal) > 0)
-            fill_triangle(tm.get_point(i), tm.get_point(i + 1), tm.get_point(i + 2), lighting);
+void Frame::draw_faces(const FL &tm, constants *lighting) { // todo names
+    for (int i = 0; i < tm.cols(); i += 3) {
+        V normal = surface_normal(tm[i], tm[i + 1], tm[i + 2]);
+        V view(0, 0, 1);
+        if (dot(view, normal) > 0)
+            fill_triangle(tm[i], tm[i + 1], tm[i + 2], lighting);
     }
 }
 
-Color Frame::calculate_color(const Point &p0, const Point &p1, const Point &p2, constants *lighting) {
+Color Frame::calculate_color(const P &p0, const P &p1, const P &p2, constants *lighting) {
     // not yet implemented
     static Color ambient_light(50, 50, 50), point_light_c(255, 255, 255);
-    static Point point_light_p(1000, 600, 1000);
-    Vec_3D view{0, 0, 1};
+    static P point_light_p(1000, 600, 1000);
+    V view{0, 0, 1};
 
     // defaults
-    Vec_3D ka(0.5, 0.5, 0.5), kd(0.5, 0.5, 0.5), ks(0.5, 0.5, 0.5);
+    Scalable<double, 3> ka(0.5), kd(0.5), ks(0.5);
     if (lighting) {
-        ka = {lighting->r[0], lighting->g[0], lighting->b[0]};
-        kd = {lighting->r[1], lighting->g[1], lighting->b[1]};
-        ks = {lighting->r[2], lighting->g[2], lighting->b[2]};
+        ka = {{lighting->r[0], lighting->g[0], lighting->b[0]}};
+        kd = {{lighting->r[1], lighting->g[1], lighting->b[1]}};
+        ks = {{lighting->r[2], lighting->g[2], lighting->b[2]}};
     }
     // calculation
     int exp = 3;
-    Vec_3D normal = surface_normal(p0, p1, p2);
-    Vec_3D l = point_light_p.vec - p0.vec;
-    Color ambient{ka.x * ambient_light.red, ka.y * ambient_light.green, ka.z * ambient_light.blue};
-    double lnd = l.normalize().dot(normal.normalize());
-    Color diffuse{lnd * Vec_3D(kd.x * point_light_c.red, kd.y * point_light_c.green, kd.z * point_light_c.blue)};
-    Color specular{pow((view.dot(2 * lnd * normal.normalize() - l.normalize())), exp) *
-                   Vec_3D(ks.x * point_light_c.red, ks.y * point_light_c.green, ks.z * point_light_c.blue)};
-    ambient.bound();
-    diffuse.bound();
-    specular.bound();
-    Color ret = static_cast<Vec_3D>(ambient) + diffuse + specular;
-    ret.bound();
-    return ret;
+    V normal = surface_normal(p0, p1, p2);
+    V l = P(point_light_p - p0);
+    Color ambient = ka * ambient_light;
+    double lnd = dot(l.normalized(), normal.normalized());
+    Color diffuse(lnd * kd * point_light_c);
+    Color specular(pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * ks * point_light_c);
+    return {ambient + diffuse + specular};
 }
 
 void Frame::draw_scanline(int x0, double z0, int x1, double z1, int y, const Color &c) {
@@ -235,15 +229,15 @@ void Frame::draw_scanline(int x0, double z0, int x1, double z1, int y, const Col
     }
 }
 
-void Frame::fill_triangle(const Point &p0, const Point &p1, const Point &p2, constants *lighting) {
+void Frame::fill_triangle(const P &p0, const P &p1, const P &p2, constants *lighting) {
     Color c = calculate_color(p0, p1, p2, lighting);
 
-    auto ycomp = [](const Point &p0, const Point &p1) -> bool { return p0.y == p1.y ? p0.x < p1.x : p0.y < p1.y; };
-    vector<Point> pts{p0, p1, p2};
+    auto ycomp = [](const P &p0, const P &p1) -> bool { return p0.y() == p1.y() ? p0.x() < p1.x() : p0.y() < p1.y(); };
+    vector<P> pts{p0, p1, p2};
     sort(pts.begin(), pts.end(), ycomp);
-    int yb = pts[0].y, ym = pts[1].y, yt = pts[2].y;
-    double xb = pts[0].x, xm = pts[1].x, xt = pts[2].x,
-            zb = pts[0].z, zm = pts[1].z, zt = pts[2].z;
+    int yb = pts[0].y(), ym = pts[1].y(), yt = pts[2].y();
+    double xb = pts[0].x(), xm = pts[1].x(), xt = pts[2].x(),
+            zb = pts[0].z(), zm = pts[1].z(), zt = pts[2].z();
 
     int y = yb;
     double x0 = xb, x1 = xb, z0 = zb, z1 = zb;

@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string.h>
+#include <cstring>
 #include "symbol_table.h"
 
 using namespace std;
@@ -58,7 +58,7 @@ SYMBOL *SymbolTable::add_symbol(const char *name, int type, void *data) {
                 t->s.c = (struct constants *) data;
                 break;
             case SYM_MATRIX:
-                t->s.m = (Modifier *) data;
+                t->s.m = (M_Matrix *) data;
                 break;
             case SYM_LIGHT:
                 t->s.l = (struct light *) data;
