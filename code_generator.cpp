@@ -65,9 +65,7 @@ void kerchow() {
                     cout << "Uh oh vary range invalid" << endl;
                     return;
                 }
-
                 double v = sv, inc = (ev - sv) / (ef - sf);
-
                 for (int j = sf; j <= ef; ++j, v += inc) {
                     knobs[j][cmd.op.vary.p->name] = v;
                 }
@@ -83,7 +81,7 @@ void kerchow() {
 
     for (int f = 0; f < frames; ++f) {
         cout << "Frame: " << f << endl;
-        Frame frame(500, 500);
+        Frame<500, 500> frame;
         stack<M_Matrix> cs_stack;
         cs_stack.emplace();
         for (int i = 0; i < lastop; ++i) {
@@ -100,17 +98,16 @@ void kerchow() {
                     TM t(cmd.op.move.d[0] * scale, cmd.op.move.d[1] * scale, cmd.op.move.d[2] * scale);
                     t.mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(move(t));
+                    cs_stack.push(t);
                 } else if (cmd.opcode == ROTATE) {
-
-                    Axis axis = cmd.op.rotate.axis == 0 ? X : cmd.op.rotate.axis == 1 ? Y : Z;
+                    Axis axis = static_cast<Axis>(cmd.op.rotate.axis);
                     double scale = 1;
                     if (cmd.op.rotate.p)
                         scale = knobs[f][cmd.op.rotate.p->name];
                     RM t(axis, cmd.op.rotate.degrees * scale);
                     t.mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(move(t));
+                    cs_stack.push(t);
                 } else if (cmd.opcode == SCALE) {
                     double scale = 1;
                     if (cmd.op.scale.p)
@@ -118,7 +115,7 @@ void kerchow() {
                     SM t(cmd.op.scale.d[0] * scale, cmd.op.scale.d[1] * scale, cmd.op.scale.d[2] * scale);
                     t.mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(move(t));
+                    cs_stack.push(t);
                 } else if (cmd.opcode == BOX) {
                     FL t;
                     t.add_box(cmd.op.box.d0[0], cmd.op.box.d0[1], cmd.op.box.d0[2],
@@ -126,7 +123,6 @@ void kerchow() {
                     t.mult(cs_stack.top());
                     frame.draw_faces(t, cmd.op.box.constants ? cmd.op.box.constants->s.c : default_lighting);
                 } else if (cmd.opcode == SPHERE) {
-
                     FL t;
                     t.add_sphere(cmd.op.sphere.d[0], cmd.op.sphere.d[1], cmd.op.sphere.d[2], cmd.op.sphere.r);
                     t.mult(cs_stack.top());

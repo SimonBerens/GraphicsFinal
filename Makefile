@@ -1,4 +1,4 @@
-OBJECTS=symbol_table.o code_generator.o draw.o V.o P.o color.o EdgeList.o face.o m_matri.o p_matrix.o rm.o sm.o tm.o
+OBJECTS=symbol_table.o code_generator.o V.o P.o color.o EdgeList.o face.o m_matri.o p_matrix.o rm.o sm.o tm.o
 LDFLAGS=-lm
 CC=g++ -std=c++17
 CFLAGS=-g
@@ -25,9 +25,6 @@ symbol_table.o: symbol_table.cpp symbol_table.h
 
 code_generator.o: code_generator.h code_generator.cpp
 	$(CC) $(CFLAGS) -c code_generator.cpp
-
-draw.o: draw.cpp draw.h
-	$(CC) $(CFLAGS) -c draw.cpp
 
 V.o: scalables/V.cpp scalables/V.h
 	$(CC) $(CFLAGS) -c scalables/V.cpp
