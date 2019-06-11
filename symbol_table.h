@@ -1,7 +1,7 @@
-#ifndef MDL_SYMBOL_TABLE_H
-#define MDL_SYMBOL_TABLE_H
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
 
-#include "custom_matrices.h"
+#include "matrices/m_matri.h"
 
 #define MAX_SYMBOLS 512
 #define SYM_MATRIX 1
@@ -32,7 +32,7 @@ typedef struct {
     char * name;
     int type;
     union {
-        Modifier *m;
+        M_Matrix *m;
         struct constants *c;
         struct light *l;
         double val;
@@ -41,7 +41,7 @@ typedef struct {
 } SYMBOL;
 
 
-class SymbolTable {
+class SymbolTable { // todo make this into a real class
 public:
 
     SYMBOL *lookup_symbol(const char *);
@@ -61,4 +61,4 @@ private:
 };
 
 
-#endif //MDL_SYMBOL_TABLE_H
+#endif //SYMBOL_TABLE_H
