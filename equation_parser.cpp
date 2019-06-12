@@ -10,7 +10,6 @@
 #include <numeric>
 #include "equation_parser.h"
 
-
 using namespace std;
 
 double Eq::Operation::eval() {
