@@ -13,13 +13,15 @@ public:
 
     Parser();
 
-    void add_symbol(const std::string &name, const SymData &data);
-
-    void add_surface(const std::string &name, Sgptr);
-
-    const SymData &lookup_symbol(const std::string &name);
-
     void add_command(Command &&command);
+
+    void add_surface(const std::string &name, Sgptr sgptr);
+
+    const Sgptr find_surface(const std::string &name) const;
+
+    void add_eq(const std::string &name, Eqptr eqptr);
+
+    const Eqptr find_eq(const std::string &name);
 
     void lex(std::istream &is);
 

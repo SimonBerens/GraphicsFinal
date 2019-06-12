@@ -13,6 +13,10 @@
 
 using namespace std;
 
+Eq::Operation::Operation()  : op(0) {
+    params.reserve(5);
+}
+
 double Eq::Operation::eval() {
     switch (op) {
         case '+':
@@ -23,11 +27,11 @@ double Eq::Operation::eval() {
             return accumulate(params.begin(), params.end(), 1., multiplies<>());
         case '/':
             if (params.size() != 2)
-                throw "/ undefined for more or less than 2 parameters";
+                throw runtime_error("/ undefined for more or less than 2 parameters");
             return params[0] / params[1];
         case '^':
             if (params.size() != 2)
-                throw "^ undefined for more or less than 2 parameters";
+                throw runtime_error("^ undefined for more or less than 2 parameters");
             return pow(params[0], params[1]);
 
     }
@@ -42,6 +46,7 @@ double Eq::eval(double x) {
     } catch (invalid_argument &e) {}
     stringstream ss(s);
     stack<Operation> ops;
+    ops.emplace(); // temp to store value
     string token;
     while (ss >> token) {
         if (token == "(")
@@ -53,14 +58,16 @@ double Eq::eval(double x) {
         } else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^")
             ops.top().op = token[0];
         else if (token == "x")
-            ops.top().params.push_back(x);
-        try {
-            ops.top().params.push_back(stod(token));
-        } catch (invalid_argument &e) {
-            throw "Unknown token in equation [" + s + "]";
+            ops.top().params.push_back(x - offset);
+        else {
+            try {
+                ops.top().params.push_back(stod(token));
+            } catch (invalid_argument &e) {
+                throw runtime_error("Unknown token [" + token + "] in equation [" + s + "]");
+            }
         }
     }
-
+    return ops.top().params[0];
 }
 
-Eq::Eq(string s) : s(std::move(s)) {}
+Eq::Eq(string s,double offset) : s(std::move(s)),offset(offset) {}

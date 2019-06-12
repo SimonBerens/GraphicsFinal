@@ -8,13 +8,12 @@ class Eq {
 public:
     double eval(double x);
 
-    Eq(std::string s);
+    Eq(std::string s, double offset);
 
+private:
     struct Operation {
 
-        Operation() : op(0) {
-            params.reserve(5);
-        };
+        Operation();
 
         char op;
 
@@ -23,6 +22,7 @@ public:
         double eval();
     };
 
+    double offset;
     std::string s;
 };
 

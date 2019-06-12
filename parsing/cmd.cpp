@@ -68,3 +68,9 @@ ROTATE::ROTATE(RM::Axis axis, const Eqptr &degrees) : axis(axis), degrees(degree
 RM ROTATE::operator()(double x) {
     return {axis, degrees->eval(x)};
 }
+
+PUSH::PUSH() {}
+
+POP::POP() {}
+
+DISPLAY::DISPLAY() {}

@@ -11,16 +11,32 @@
 
 using namespace std;
 
-Parser::Parser() : static_image(false) {
+Parser::Parser() : static_image(false), basename("default"), frames(1) {
     commands.reserve(128);
 }
 
-void Parser::add_symbol(const std::string &name, const SymData &data) {
-    symbol_table.insert_or_assign(name, data);
+void Parser::add_surface(const std::string &name, Sgptr sgprt) { // todo rename add to h
+    surfaces.insert_or_assign(name, sgprt);
 }
 
-const SymData &Parser::lookup_symbol(const std::string &name) {
-    return symbol_table.at(name);
+const Sgptr Parser::find_surface(const std::string &name) const {
+    return surfaces.at(name);
+}
+
+
+void Parser::add_eq(const std::string &name, Eqptr eqptr) {
+    equations.insert_or_assign(name, eqptr);
+
+}
+
+const Eqptr Parser::find_eq(const std::string &name) {
+    try {
+        stod(name);
+    } catch (invalid_argument &e) {
+        return equations.at(name);
+    }
+    add_eq(name, std::make_shared<Eq>(name, 0)); // todo change return
+    return equations.at(name);
 }
 
 void Parser::add_command(Command &&command) {
@@ -32,63 +48,88 @@ void Parser::lex(std::istream &is) {
     int line_no = 0;
     while (getline(is, line)) {
         stringstream ss(line);
-        string raw_token;
-        ss >> raw_token;
-
-        if (raw_token == "constants") {
+        string command;
+        ss >> command;
+        if (command == "constants") {
             string name, kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb;
             ss >> name >> kar >> kag >> kab >> kdr >> kdg >> kdb >> ksr >> ksg >> ksb;
-//            add_symbol(name, surface);
-        } else if (raw_token == "sphere") {
+            add_surface(name, std::make_shared<SurfaceGenerator>(
+                    find_eq(kar), find_eq(kag), find_eq(kab),
+                    find_eq(kdr), find_eq(kdg), find_eq(kdb),
+                    find_eq(ksr), find_eq(ksg), find_eq(ksb))
+            );
+        } else if (command == "sphere") {
             string surface_name, x, y, z, radius; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> radius;
-//            add_command(Command{in_place_index<1>, DRAW_SPHERE{surface_name});
-        } else if (raw_token == "torus") {
+            add_command(Command{in_place_index<0>, DRAW_SPHERE{
+                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(radius)
+            }});
+        } else if (command == "torus") {
             string surface_name, x, y, z, inner_r, outer_r; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> inner_r >> outer_r; // todo optional surface name
-            add_command(Command{in_place_index<2>, DRAW_TORUS{surface_name, {x, y, z}, inner_r, outer_r}});
-        } else if (raw_token == "box") {
+            add_command(Command{in_place_index<1>, DRAW_TORUS{
+                    find_surface(surface_name),
+                    find_eq(x), find_eq(y), find_eq(z), find_eq(inner_r), find_eq(outer_r)
+            }});
+        } else if (command == "box") {
             string surface_name, x, y, z, h, w, d; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> h >> w >> d;
-            add_command(Command{in_place_index<3>, DRAW_BOX{surface_name, {x, y, z}, h, w, d}});
-        } else if (raw_token == "line") {
+            add_command(Command{in_place_index<2>, DRAW_BOX{
+                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(h), find_eq(w), find_eq(d)}
+            });
+        } else if (command == "line") {
             string x0, y0, z0, x1, y1, z1;
             ss >> x0 >> y0 >> z0 >> x1 >> y1 >> z1;
-            add_command(Command{in_place_index<4>, DRAW_LINE{{x0, y0, z0},
-                                                             {x1, y1, z1}}});
-        } else if (raw_token == "move") {
+            add_command(Command{in_place_index<3>, DRAW_LINE{
+                    find_eq(x0), find_eq(y0), find_eq(z0), find_eq(x1), find_eq(y1), find_eq(z1)
+            }});
+        } else if (command == "move") {
             string x, y, z;
             ss >> x >> y >> z;
-            add_command(Command{in_place_index<5>, MOVE{}});
-        } else if (raw_token == "scale") {
+            add_command(Command{in_place_index<4>,
+                                MOVE{find_eq(x), find_eq(y), find_eq(z)}}); // todo unique ptr polymorphism
+        } else if (command == "scale") {
             string x, y, z;
             ss >> x >> y >> z;
-            add_command(Command{in_place_index<6>, SCALE{}});
-        } else if (raw_token == "rotate") {
+            add_command(Command{in_place_index<5>, SCALE{find_eq(x), find_eq(y), find_eq(z)}});
+        } else if (command == "rotate") {
             string axis, degrees;
             ss >> axis >> degrees;
-            add_command(Command{in_place_index<7>, ROTATE{}});
-        } else if (raw_token == "push") {
+            add_command(Command{in_place_index<6>, ROTATE{
+                    axis == "X" ? RM::X : axis == "Y" ? RM::Y : RM::Z, // todo error check this
+                    find_eq(degrees)}});
+        } else if (command == "push") {
             // todo check line is empty
-            add_command(Command{in_place_index<8>, PUSH{}});
-        } else if (raw_token == "pop") {
+            add_command(Command{in_place_index<7>, PUSH{}});
+        } else if (command == "pop") {
             // todo check line is empty
-            add_command(Command{in_place_index<9>, POP{}});
-        } else if (raw_token == "display") {
+            add_command(Command{in_place_index<8>, POP{}});
+        } else if (command == "display") {
             // todo check line is empty
-            add_command(Command{in_place_index<10>, DISPLAY{}});
-        } else if (raw_token == "basename") {
+            add_command(Command{in_place_index<9>, DISPLAY{}});
+        } else if (command == "basename") {
             ss >> basename;
-        } else if (raw_token == "frames") {
+        } else if (command == "frames") {
             ss >> frames;
-        } else if (raw_token == "vary") {
-            string name, sf, ef, eq, mode;
-            ss >> name >> sf >> ef >> eq >> mode;
-            add_symbol(name,)
-        } else if (raw_token == "save") {
-            string name;
-            ss >> name;
-            add_command(Command{in_place_index<14>, SAVE{name}});
+        } else if (command == "vary") {
+            string name, eq_tok, eq, mode;
+            double sf, ef;
+            ss >> name >> sf >> ef;
+            ss >> eq_tok;
+            eq = eq_tok;
+            if (eq_tok == "(") { // todo error checking
+                int parens = 1;
+                while (parens) {
+                    ss >> eq_tok;
+                    eq += eq_tok;
+                    if (eq_tok == "(")
+                        parens++;
+                    else if (eq_tok == ")")
+                        parens--;
+                }
+            }
+            ss >> mode;
+            add_eq(name, std::make_shared<Eq>(name, mode == "relative" ? sf : 0)); // todo error check mode
         }
         line_no++;
 
@@ -98,58 +139,11 @@ void Parser::lex(std::istream &is) {
 void Parser::parse() {
 
     // lighting defaults
-    Surface default_lighting{{0.5},
-                             {0.5},
-                             {0.5}};
-
-    // first pass
-    int frames = 0;
-    string basename("default");
-    bool vary_exists = false;
-
-    for (auto &cmd: commands) {
-        if (holds_alternative<SET_FRAMES>(cmd)) {
-            frames = get<SET_FRAMES>(cmd).num_frames;
-        } else if (holds_alternative<VARY>(cmd)) {
-            vary_exists = true;
-        } else if (holds_alternative<SET_BASENAME>(cmd)) {
-            basename = get<SET_BASENAME>(cmd).name;
-        }
-    }
-
-    if (vary_exists && !frames) {
-        cout << "Uh oh vary present but no frames set" << endl;
-        return;
-    }
-
-    if (!frames)
-        frames = 1;
-
-    // second pass
-
-    vector<map<string, double>> knobs(frames);
-    if (vary_exists) {
-        for (auto &cmd: commands) {
-            if (holds_alternative<VARY>(cmd)) {
-                int sf = get<VARY>(cmd).start_frame, ef = get<VARY>(cmd).end_frame;
-                double sv = get<VARY>(cmd).start_val, ev = get<VARY>(cmd).end_val;
-                if (sf < 0 || ef >= frames) {
-                    cout << "Uh oh vary range invalid" << endl;
-                    return;
-                }
-                double v = sv, inc = (ev - sv) / (ef - sf);
-                for (int j = sf; j <= ef; ++j, v += inc) {
-                    knobs[j][get<VARY>(cmd).name] = v;
-                }
-            }
-        }
-    }
+    Surface default_lighting{{0.5}, {0.5}, {0.5}};
 
 
-    if (vary_exists) {
-        system("mkdir build");
-        chdir("./build");
-    }
+    system("mkdir build");
+    chdir("./build");
 
     for (int f = 0; f < frames; ++f) {
         cout << "Frame: " << f << endl;
@@ -162,77 +156,49 @@ void Parser::parse() {
             } else if (holds_alternative<POP>(cmd)) {
                 cs_stack.pop();
             } else {
-                if (holds_alternative<MOVE>(cmd)) {
+                if (holds_alternative<MOVE>(cmd)) { // todo reorder
                     double scale = 1;
-                    if (get<MOVE>(cmd).scale_factor_name.empty())
-                        scale = knobs[f][get<MOVE>(cmd).scale_factor_name];
-                    TM t(get<MOVE>(cmd).params * scale);
+                    TM t(get<MOVE>(cmd)(f));
                     t.mult(cs_stack.top());
                     cs_stack.pop();
                     cs_stack.push(t);
-                } else if (holds_alternative<ROTATE>(cmd)) {
-                    auto axis = static_cast<RM::Axis>(get<ROTATE>(cmd).axis);
-                    double scale = 1;
-                    if (get<ROTATE>(cmd).scale_factor_name.empty())
-                        scale = knobs[f][get<ROTATE>(cmd).scale_factor_name];
-                    RM t(axis, get<ROTATE>(cmd).degrees * scale);
+                } else if (holds_alternative<ROTATE>(cmd)) { // todo refactor to use polymorphism of unique_ptr
+                    RM t(get<ROTATE>(cmd)(f));
                     t.mult(cs_stack.top());
                     cs_stack.pop();
                     cs_stack.push(t);
                 } else if (holds_alternative<SCALE>(cmd)) {
-                    double scale = 1;
-                    if (get<SCALE>(cmd).scale_factor_name.empty())
-                        scale = knobs[f][get<SCALE>(cmd).scale_factor_name];
-                    SM t(get<SCALE>(cmd).params * scale);
+                    SM t(get<SCALE>(cmd)(f));
                     t.mult(cs_stack.top());
                     cs_stack.pop();
                     cs_stack.push(t);
                 } else if (holds_alternative<DRAW_BOX>(cmd)) {
-                    FL t;
-                    t.add_box(get<DRAW_BOX>(cmd).upper_left_corner, get<DRAW_BOX>(cmd).width, get<DRAW_BOX>(cmd).height,
-                              get<DRAW_BOX>(cmd).depth);
+                    FL t(get<DRAW_BOX>(cmd)(f));
                     t.mult(cs_stack.top());
-                    frame.draw_faces(t, get<DRAW_BOX>(cmd).surface_name.empty() ? get<Surface>(
-                            symbol_table.at(get<DRAW_BOX>(cmd).surface_name))
-                                                                                : default_lighting);
+                    frame.draw_faces(t, default_lighting); // todo fix params so constants works
                 } else if (holds_alternative<DRAW_SPHERE>(cmd)) {
-                    FL t;
-                    t.add_sphere(get<DRAW_SPHERE>(cmd).center, get<DRAW_SPHERE>(cmd).radius);
+                    FL t(get<DRAW_SPHERE>(cmd)(f));
                     t.mult(cs_stack.top());
-                    frame.draw_faces(t, get<DRAW_BOX>(cmd).surface_name.empty() ? get<Surface>(
-                            symbol_table.at(get<DRAW_SPHERE>(cmd).surface_name))
-                                                                                : default_lighting);
+                    frame.draw_faces(t, default_lighting); // todo refactor mult to return edited matrix
                 } else if (holds_alternative<DRAW_TORUS>(cmd)) {
-                    FL t;
-                    t.add_torus(get<DRAW_TORUS>(cmd).center, get<DRAW_TORUS>(cmd).inner_r,
-                                get<DRAW_TORUS>(cmd).outer_r);
+                    FL t(get<DRAW_TORUS>(cmd)(f));
                     t.mult(cs_stack.top());
-                    frame.draw_faces(t, get<DRAW_BOX>(cmd).surface_name.empty() ? get<Surface>(
-                            symbol_table.at(get<DRAW_TORUS>(cmd).surface_name))
-                                                                                : default_lighting);
+                    frame.draw_faces(t, default_lighting);
                 } else if (holds_alternative<DRAW_LINE>(cmd)) {
-                    EL t;
-                    t.add_edge({get<DRAW_LINE>(cmd).p0[0], get<DRAW_LINE>(cmd).p0[1], get<DRAW_LINE>(cmd).p0[2]},
-                               {get<DRAW_LINE>(cmd).p1[0], get<DRAW_LINE>(cmd).p1[1], get<DRAW_LINE>(cmd).p1[2]});
+                    EL t(get<DRAW_LINE>(cmd)(f));
                     t.mult(cs_stack.top());
                     frame.draw_lines(t);
-                } else if (!vary_exists && holds_alternative<SAVE>(cmd)) {
-                    frame.save(get<SAVE>(cmd).name);
-                } else if (!vary_exists && holds_alternative<DISPLAY>(cmd)) {
+                } else if (holds_alternative<DISPLAY>(cmd)) {
                     FILE *fd = popen("display", "w");
                     frame.write_to(fd);
                     pclose(fd);
                 }
             }
-            if (vary_exists) {
-                stringstream fname;
-                fname << setfill('0') << setw(3) << f;
-                frame.save(basename + fname.str());
-            }
+            stringstream fname;
+            fname << setfill('0') << setw(3) << f;
+            frame.save(basename + fname.str());
         }
     }
-    if (vary_exists) {
-        chdir("..");
-        system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
-    }
+    chdir("..");
+    system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
 }
