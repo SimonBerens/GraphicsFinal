@@ -26,7 +26,6 @@ const Sgptr Parser::find_surface(const std::string &name) const {
 
 void Parser::add_eq(const std::string &name, Eqptr eqptr) {
     equations.insert_or_assign(name, eqptr);
-
 }
 
 const Eqptr Parser::find_eq(const std::string &name) {
@@ -39,11 +38,12 @@ const Eqptr Parser::find_eq(const std::string &name) {
     return equations.at(name);
 }
 
+
 void Parser::add_command(Command &&command) {
     commands.push_back(command);
 }
 
-void Parser::lex(std::istream &is) {
+void Parser::lex(std::istream &is) { // todo rename
     string line;
     int line_no = 0;
     while (getline(is, line)) {
@@ -112,34 +112,30 @@ void Parser::lex(std::istream &is) {
         } else if (command == "frames") {
             ss >> frames;
         } else if (command == "vary") {
-            string name, eq_tok, eq, mode;
+            string name, eq, mode;
             double sf, ef;
             ss >> name >> sf >> ef;
-            ss >> eq_tok;
-            eq = eq_tok;
-            if (eq_tok == "(") { // todo error checking
-                int parens = 1;
-                while (parens) {
-                    ss >> eq_tok;
-                    eq += eq_tok;
-                    if (eq_tok == "(")
-                        parens++;
-                    else if (eq_tok == ")")
-                        parens--;
-                }
-            }
-            ss >> mode;
-            add_eq(name, std::make_shared<Eq>(name, mode == "relative" ? sf : 0)); // todo error check mode
+            string rev;
+            getline(ss, rev);
+            reverse(rev.begin(), rev.end());
+            stringstream rev_ss(rev);
+            rev_ss >> mode;
+            reverse(mode.begin(), mode.end());
+            getline(rev_ss, eq);
+            reverse(eq.begin(), eq.end());
+            add_eq(name, std::make_shared<Eq>(eq, mode == "relative" ? sf : 0)); // todo error check mode
         }
         line_no++;
 
     }
 }
 
-void Parser::parse() {
+void Parser::parse() { // todo rename
 
     // lighting defaults
-    Surface default_lighting{{0.5}, {0.5}, {0.5}};
+    Surface default_lighting{{0.5},
+                             {0.5},
+                             {0.5}};
 
 
     system("mkdir build");
@@ -157,7 +153,6 @@ void Parser::parse() {
                 cs_stack.pop();
             } else {
                 if (holds_alternative<MOVE>(cmd)) { // todo reorder
-                    double scale = 1;
                     TM t(get<MOVE>(cmd)(f));
                     t.mult(cs_stack.top());
                     cs_stack.pop();
@@ -201,4 +196,5 @@ void Parser::parse() {
     }
     chdir("..");
     system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
+    system("rm -rf ./build");
 }

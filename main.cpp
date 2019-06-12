@@ -1,5 +1,6 @@
 #include <iostream>
 #include "parsing/symt.h"
+#include "draw.h"
 
 using namespace std;
 

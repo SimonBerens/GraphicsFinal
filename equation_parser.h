@@ -15,9 +15,11 @@ private:
 
         Operation();
 
-        char op;
+        std::string op;
 
         std::vector<double> params;
+
+        void param_num_check(int num_required, const std::string& op_attempted);
 
         double eval();
     };

@@ -1,5 +1,5 @@
-#ifndef DRAW_H
-#define DRAW_H
+#ifndef DRAW_HL
+#define DRAW_HL
 
 #include <algorithm>
 #include <cfloat>
@@ -9,7 +9,6 @@
 #include <cmath>
 #include <cfloat>
 #include "scalables/color.h"
-#include "symbol_table.h"
 #include "scalables/P.h"
 #include "scalables/V.h"
 #include "matrices/EdgeList.h"
@@ -233,5 +232,4 @@ private:
     std::array<std::array<Color, height>, width> grid;
     std::array<std::array<double, height>, width> zbuf;
 };
-
 #endif //DRAW_H
