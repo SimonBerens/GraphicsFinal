@@ -10,7 +10,6 @@
 #include <numeric>
 #include "equation_parser.h"
 
-
 using namespace std;
 
 Eq::Operation::Operation()  : op(0) {
