@@ -8,6 +8,8 @@
 class P : public Scalable<double, 4> {
 public:
 
+    P();
+
     P(const Scalable<double, 4> &o);
 
     P(double x, double y, double z);

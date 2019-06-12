@@ -14,7 +14,7 @@ public:
 
     size_type cols() const;
 
-    void add_point(P p);
+    void add_point(P p); // todo const stuff
 
     P operator[](size_type col) const;
 

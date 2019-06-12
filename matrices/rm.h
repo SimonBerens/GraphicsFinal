@@ -3,11 +3,12 @@
 
 #include "m_matri.h"
 
-enum Axis {
-    X, Y, Z
-};
 
 struct RM : M_Matrix {
+    enum Axis {
+        X, Y, Z
+    };
+
     RM(Axis axis, double degrees);
 
 };

@@ -1,4 +1,4 @@
-OBJECTS=symbol_table.o code_generator.o V.o P.o color.o EdgeList.o face.o m_matri.o p_matrix.o rm.o sm.o tm.o
+OBJECTS=symt.o cmd.o sym.o V.o P.o color.o EdgeList.o face.o m_matri.o p_matrix.o rm.o sm.o tm.o
 LDFLAGS=-lm
 CC=g++ -std=c++17
 CFLAGS=-g
@@ -11,20 +11,20 @@ all: parser
 parser: lex.yy.c y.tab.c y.tab.h $(OBJECTS)
 	$(CC) $(CFLAGS) lex.yy.c y.tab.c $(OBJECTS) $(LDFLAGS) -o exec.zzz
 
-lex.yy.c: mdl.l y.tab.h
-	flex -I mdl.l
+lex.yy.c: my_mdl.l y.tab.h
+	flex -I -o lex.yy.c my_mdl.l
 
-y.tab.c: mdl.y symbol_table.h command.h
-	bison -d -y mdl.y
+y.tab.c y.tab.h: my_mdl.y parsing/symt.h
+	bison -d -y my_mdl.y
 
-y.tab.h: mdl.y
-	bison -d -y mdl.y
+symt.o: parsing/symt.cpp parsing/symt.h
+	$(CC) $(CFLAGS) -c parsing/symt.cpp
 
-symbol_table.o: symbol_table.cpp symbol_table.h
-	$(CC) $(CFLAGS) -c symbol_table.cpp
-
-code_generator.o: code_generator.h code_generator.cpp
-	$(CC) $(CFLAGS) -c code_generator.cpp
+cmd.o: parsing/cmd.h parsing/cmd.cpp
+	$(CC) $(CFLAGS) -c parsing/cmd.cpp
+	
+sym.o: parsing/sym.h parsing/sym.cpp
+	$(CC) $(CFLAGS) -c parsing/sym.cpp
 
 V.o: scalables/V.cpp scalables/V.h
 	$(CC) $(CFLAGS) -c scalables/V.cpp

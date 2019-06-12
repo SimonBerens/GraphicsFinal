@@ -9,7 +9,8 @@ void FL::add_face(P p0, P p1, P p2) {
     add_point(p2);
 }
 
-void FL::add_box(double x, double y, double z, double width, double height, double depth) {
+void FL::add_box(const P &upper_left_corner, double width, double height, double depth) {
+    double x = upper_left_corner.x(), y = upper_left_corner.y(), z = upper_left_corner.z();
     double x1 = x + width, y1 = y - height, z1 = z - depth;
     // front face
     add_face({x, y, z}, {x, y1, z}, {x1, y1, z});
@@ -31,7 +32,8 @@ void FL::add_box(double x, double y, double z, double width, double height, doub
     add_face({x, y1, z1}, {x, y, z1}, {x1, y, z1});
 }
 
-void FL::add_sphere(double cx, double cy, double cz, double r) {
+void FL::add_sphere(const P &center, double r) {
+    const double cx = center.x(), cy = center.y(), cz = center.z();
     FL temp;
     int psteps = 20, tsteps = 20;
     for (int pstep = 0; pstep <= psteps; pstep++) {
@@ -50,7 +52,8 @@ void FL::add_sphere(double cx, double cy, double cz, double r) {
     }
 }
 
-void FL::add_torus(double cx, double cy, double cz, double r0, double r1) {
+void FL::add_torus(const P &center, double r0, double r1) {
+    double cx = center.x(), cy = center.y(), cz = center.z();
     FL temp;
     int psteps = 100, tsteps = 50;
     for (int pstep = 0; pstep <= psteps; pstep++) {

@@ -14,6 +14,7 @@
 #include "scalables/V.h"
 #include "matrices/EdgeList.h"
 #include "matrices/face.h"
+#include "parsing/sym.h"
 
 #define DEFAULT_COLOR Color(28, 237, 66)
 
@@ -149,36 +150,29 @@ public:
         return cross(a, b);
     }
 
-    void draw_faces(const FL &tm, constants *lighting) { // todo names
+    void draw_faces(const FL &tm, const Surface &surface) { // todo names
         for (int i = 0; i < tm.cols(); i += 3) {
             V normal = surface_normal(tm[i], tm[i + 1], tm[i + 2]);
             V view(0, 0, 1);
             if (dot(view, normal) > 0)
-                fill_triangle(tm[i], tm[i + 1], tm[i + 2], lighting);
+                fill_triangle(tm[i], tm[i + 1], tm[i + 2], surface);
         }
     }
 
-    static Color calculate_color(const P &p0, const P &p1, const P &p2, constants *lighting) {
+    static Color calculate_color(const P &p0, const P &p1, const P &p2, const Surface &surface) {
         // not yet implemented
         static Color ambient_light(50, 50, 50), point_light_c(255, 255, 255);
         static P point_light_p(1000, 600, 1000);
         V view{0, 0, 1};
-
-        // defaults
-        Scalable<double, 3> ka(0.5), kd(0.5), ks(0.5);
-        if (lighting) {
-            ka = {{lighting->r[0], lighting->g[0], lighting->b[0]}};
-            kd = {{lighting->r[1], lighting->g[1], lighting->b[1]}};
-            ks = {{lighting->r[2], lighting->g[2], lighting->b[2]}};
-        }
         // calculation
         int exp = 3;
         V normal = surface_normal(p0, p1, p2);
         V l = P(point_light_p - p0);
-        Color ambient = ka * ambient_light;
+        Color ambient = surface.ambient * ambient_light;
         double lnd = dot(l.normalized(), normal.normalized());
-        Color diffuse(lnd * kd * point_light_c);
-        Color specular(pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * ks * point_light_c);
+        Color diffuse(lnd * surface.diffuse * point_light_c);
+        Color specular(
+                pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * surface.specular * point_light_c);
         return {ambient + diffuse + specular};
     }
 
@@ -201,8 +195,8 @@ public:
     }
 
 
-    void fill_triangle(const P &p0, const P &p1, const P &p2, constants *lighting) {
-        Color c = calculate_color(p0, p1, p2, lighting);
+    void fill_triangle(const P &p0, const P &p1, const P &p2, const Surface &surface) {
+        Color c = calculate_color(p0, p1, p2, surface);
 
         auto ycomp = [](const P &p0, const P &p1) -> bool {
             return p0.y() == p1.y() ? p0.x() < p1.x() : p0.y() < p1.y();

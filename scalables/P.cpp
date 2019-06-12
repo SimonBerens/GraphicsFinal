@@ -8,6 +8,8 @@ P::P(double x, double y, double z) {
     data = {x, y, z, 1};
 }
 
+P::P() : P(0, 0, 0) {}
+
 double &P::x() {
     return data[0];
 }

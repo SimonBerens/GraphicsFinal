@@ -6,11 +6,11 @@
 struct FL : P_Matrix {
     void add_face(P p0, P p1, P p2); // todo &&
 
-    void add_box(double x, double y, double z, double width, double height, double depth);
+    void add_box(const P &upper_left_corner, double width, double height, double depth);
 
-    void add_sphere(double cx, double cy, double cz, double r);
+    void add_sphere(const P &center, double r);
 
-    void add_torus(double cx, double cy, double cz, double r0, double r1);
+    void add_torus(const P &center, double r0, double r1);
 };
 
 #endif //FINAL_FACE_H

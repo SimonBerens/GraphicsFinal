@@ -6,3 +6,5 @@ SM::SM(double sx, double sy, double sz) {
     m(1, 1) = sy;
     m(2, 2) = sz;
 }
+
+SM::SM(const Scalable<double, 3> &scalable) : SM(scalable[0], scalable[1], scalable[2]) {}

@@ -1,21 +1,66 @@
-#include <string>;
+#include <utility>
+
+#include <string>
+#include <stack>
+#include <vector>
+#include <stdexcept>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
+#include <numeric>
+#include "equation_parser.h"
+
+
 using namespace std;
 
-string replace_str(const string & original, const string & target, const string & replace){
-  int replace_location = original.find(target)
-    int target_len = target.size()
-    return original.substr(0,replace_location) + replace + original.substr(replace_location + target_len,original.size())
+double Eq::Operation::eval() {
+    switch (op) {
+        case '+':
+            return accumulate(params.begin(), params.end(), 0.);
+        case '-':
+            return -accumulate(params.begin(), params.end(), 0.);
+        case '*':
+            return accumulate(params.begin(), params.end(), 1., multiplies<>());
+        case '/':
+            if (params.size() != 2)
+                throw "/ undefined for more or less than 2 parameters";
+            return params[0] / params[1];
+        case '^':
+            if (params.size() != 2)
+                throw "^ undefined for more or less than 2 parameters";
+            return pow(params[0], params[1]);
+
     }
-
-double eval_sub(const string & equation, double x){
-  return eval(replace_str(equation, "x",to_string(x)))
-    }
-
-string[] operations = ["+","-","*","/","^"]
-
-double eval(const string & equation){
-  int start_loc = equation.find(")")
-    int end_loc= equation.rfind("(")
-    string eq_subsection = equation.substr(start_loc,end_loc+1)
-    
+    return 0;
 }
+
+double Eq::eval(double x) {
+    if (s == "x")
+        return x;
+    try {
+        return stod(s);
+    } catch (invalid_argument &e) {}
+    stringstream ss(s);
+    stack<Operation> ops;
+    string token;
+    while (ss >> token) {
+        if (token == "(")
+            ops.emplace();
+        else if (token == ")") {
+            double res = ops.top().eval();
+            ops.pop();
+            ops.top().params.push_back(res);
+        } else if (token == "+" || token == "-" || token == "*" || token == "/" || token == "^")
+            ops.top().op = token[0];
+        else if (token == "x")
+            ops.top().params.push_back(x);
+        try {
+            ops.top().params.push_back(stod(token));
+        } catch (invalid_argument &e) {
+            throw "Unknown token in equation [" + s + "]";
+        }
+    }
+
+}
+
+Eq::Eq(string s) : s(std::move(s)) {}

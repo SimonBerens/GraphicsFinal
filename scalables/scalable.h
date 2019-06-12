@@ -18,6 +18,14 @@ public:
 
     Scalable(std::array<T, size> values) : data(values) {}
 
+    T &operator[](unsigned int n) {
+        return data[n];
+    }
+
+    T operator[](unsigned int n) const {
+        return data[n];
+    }
+
     friend Scalable operator+(const Scalable &a, const Scalable &b) {
         Scalable<T, size> result;
         for (int i = 0; i < size; ++i)
