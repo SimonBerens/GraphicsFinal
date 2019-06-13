@@ -61,52 +61,49 @@ void Parser::lex(std::istream &is) { // todo rename
         } else if (command == "sphere") {
             string surface_name, x, y, z, radius; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> radius;
-            add_command(Command{in_place_index<0>, DRAW_SPHERE{
-                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(radius)
-            }});
+            add_command(Command{in_place_index<3>, make_shared<DRAW_SPHERE>(
+                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(radius))});
         } else if (command == "torus") {
             string surface_name, x, y, z, inner_r, outer_r; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> inner_r >> outer_r; // todo optional surface name
-            add_command(Command{in_place_index<1>, DRAW_TORUS{
-                    find_surface(surface_name),
-                    find_eq(x), find_eq(y), find_eq(z), find_eq(inner_r), find_eq(outer_r)
-            }});
+            add_command(Command{in_place_index<3>, make_shared<DRAW_TORUS>(
+                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(inner_r), find_eq(outer_r)
+            )});
         } else if (command == "box") {
             string surface_name, x, y, z, h, w, d; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> h >> w >> d;
-            add_command(Command{in_place_index<2>, DRAW_BOX{
-                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(h), find_eq(w), find_eq(d)}
+            add_command(Command{in_place_index<3>, make_shared<DRAW_BOX>(
+                    find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(h), find_eq(w), find_eq(d))
             });
         } else if (command == "line") {
             string x0, y0, z0, x1, y1, z1;
             ss >> x0 >> y0 >> z0 >> x1 >> y1 >> z1;
-            add_command(Command{in_place_index<3>, DRAW_LINE{
+            add_command(Command{in_place_index<5>, DRAW_LINE{
                     find_eq(x0), find_eq(y0), find_eq(z0), find_eq(x1), find_eq(y1), find_eq(z1)
-            }});
+            }}); // todo ask dw if i can remove this
         } else if (command == "move") {
             string x, y, z;
             ss >> x >> y >> z;
-            add_command(Command{in_place_index<4>,
-                                MOVE{find_eq(x), find_eq(y), find_eq(z)}}); // todo unique ptr polymorphism
+            add_command(Command{in_place_index<4>, make_shared<MOVE>(find_eq(x), find_eq(y), find_eq(z))});
         } else if (command == "scale") {
             string x, y, z;
             ss >> x >> y >> z;
-            add_command(Command{in_place_index<5>, SCALE{find_eq(x), find_eq(y), find_eq(z)}});
+            add_command(Command{in_place_index<4>, make_shared<SCALE>(find_eq(x), find_eq(y), find_eq(z))});
         } else if (command == "rotate") {
             string axis, degrees;
             ss >> axis >> degrees;
-            add_command(Command{in_place_index<6>, ROTATE{
+            add_command(Command{in_place_index<4>, make_shared<ROTATE>(
                     axis == "X" ? RM::X : axis == "Y" ? RM::Y : RM::Z, // todo error check this
-                    find_eq(degrees)}});
+                    find_eq(degrees))});
         } else if (command == "push") {
             // todo check line is empty
-            add_command(Command{in_place_index<7>, PUSH{}});
+            add_command(Command{in_place_index<0>, PUSH{}});
         } else if (command == "pop") {
             // todo check line is empty
-            add_command(Command{in_place_index<8>, POP{}});
+            add_command(Command{in_place_index<1>, POP{}});
         } else if (command == "display") {
             // todo check line is empty
-            add_command(Command{in_place_index<9>, DISPLAY{}});
+            add_command(Command{in_place_index<2>, DISPLAY{}});
         } else if (command == "basename") {
             ss >> basename;
         } else if (command == "frames") {
@@ -152,33 +149,15 @@ void Parser::parse() { // todo rename
             } else if (holds_alternative<POP>(cmd)) {
                 cs_stack.pop();
             } else {
-                if (holds_alternative<MOVE>(cmd)) { // todo reorder
-                    TM t(get<MOVE>(cmd)(f));
-                    t.mult(cs_stack.top());
+                if (holds_alternative<DRAW_PTR>(cmd)) {
+                    auto t = get<DRAW_PTR>(cmd)->matrix(f);
+                    t->mult(cs_stack.top()); // todo refactor mult to return edited matrix
+                    frame.draw_faces(*t, default_lighting);// todo fix params so constants works
+                } else if (holds_alternative<MODIFY_CS_PTR>(cmd)) {
+                    auto m = get<MODIFY_CS_PTR>(cmd)->matrix(f);
+                    m->mult(cs_stack.top());
                     cs_stack.pop();
-                    cs_stack.push(t);
-                } else if (holds_alternative<ROTATE>(cmd)) { // todo refactor to use polymorphism of unique_ptr
-                    RM t(get<ROTATE>(cmd)(f));
-                    t.mult(cs_stack.top());
-                    cs_stack.pop();
-                    cs_stack.push(t);
-                } else if (holds_alternative<SCALE>(cmd)) {
-                    SM t(get<SCALE>(cmd)(f));
-                    t.mult(cs_stack.top());
-                    cs_stack.pop();
-                    cs_stack.push(t);
-                } else if (holds_alternative<DRAW_BOX>(cmd)) {
-                    FL t(get<DRAW_BOX>(cmd)(f));
-                    t.mult(cs_stack.top());
-                    frame.draw_faces(t, default_lighting); // todo fix params so constants works
-                } else if (holds_alternative<DRAW_SPHERE>(cmd)) {
-                    FL t(get<DRAW_SPHERE>(cmd)(f));
-                    t.mult(cs_stack.top());
-                    frame.draw_faces(t, default_lighting); // todo refactor mult to return edited matrix
-                } else if (holds_alternative<DRAW_TORUS>(cmd)) {
-                    FL t(get<DRAW_TORUS>(cmd)(f));
-                    t.mult(cs_stack.top());
-                    frame.draw_faces(t, default_lighting);
+                    cs_stack.push(*m);
                 } else if (holds_alternative<DRAW_LINE>(cmd)) {
                     EL t(get<DRAW_LINE>(cmd)(f));
                     t.mult(cs_stack.top());
@@ -188,6 +167,7 @@ void Parser::parse() { // todo rename
                     frame.write_to(fd);
                     pclose(fd);
                 }
+
             }
             stringstream fname;
             fname << setfill('0') << setw(3) << f;

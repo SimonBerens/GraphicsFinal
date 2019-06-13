@@ -20,7 +20,7 @@ public:
                      const Eqptr &kdr, const Eqptr &kdg, const Eqptr &kdb,
                      const Eqptr &ksr, const Eqptr &ksg, const Eqptr &ksb);
 
-    Surface operator()(double x);
+    std::unique_ptr<Surface> eval(double x);
 
 private:
     Eqptr kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb;
@@ -28,40 +28,57 @@ private:
 
 typedef std::shared_ptr<SurfaceGenerator> Sgptr;
 
-struct DRAW_SPHERE {
+
+struct DRAW {
+    explicit DRAW(Sgptr sgptr);
+
+    std::unique_ptr<Surface> surface(unsigned int frame);
+
+    virtual std::unique_ptr<FL> matrix(unsigned int frame) = 0;
+
+protected:
+    Sgptr sgptr;
+};
+
+typedef std::shared_ptr<DRAW> DRAW_PTR;
+
+struct MODIFY_CS {
+    virtual std::unique_ptr<M_Matrix> matrix(unsigned int frame) = 0;
+};
+
+typedef std::shared_ptr<MODIFY_CS> MODIFY_CS_PTR;
+
+struct DRAW_SPHERE : DRAW {
     DRAW_SPHERE(const Sgptr &sgptr, const Eqptr &cx, const Eqptr &cy, const Eqptr &cz, const Eqptr &radius);
 
-    FL operator()(double x);
+    std::unique_ptr<FL> matrix(unsigned int frame) override;
 
 private:
-    Sgptr sgptr;
     Eqptr cx, cy, cz, radius;
 };
 
 
-struct DRAW_TORUS {
+struct DRAW_TORUS : DRAW {
     DRAW_TORUS(const Sgptr &sgptr, const Eqptr &cx, const Eqptr &cy, const Eqptr &cz, const Eqptr &innerR,
                const Eqptr &outerR);
 
-    FL operator()(double x);
+    std::unique_ptr<FL> matrix(unsigned int frame) override;
 
 private:
-    Sgptr sgptr;
     Eqptr cx, cy, cz, inner_r, outer_r;
 };
 
-struct DRAW_BOX {
+struct DRAW_BOX : DRAW {
     DRAW_BOX(const Sgptr &sgptr, const Eqptr &ulcx, const Eqptr &ulcy, const Eqptr &ulcz, const Eqptr &width,
              const Eqptr &height, const Eqptr &depth);
 
-    FL operator()(double x);
+    std::unique_ptr<FL> matrix(unsigned int frame) override;
 
 private:
-    Sgptr sgptr;
     Eqptr ulcx, ulcy, ulcz, width, height, depth;
 };
 
-struct DRAW_LINE {
+struct DRAW_LINE { // todo maybe draw
     DRAW_LINE(const Eqptr &x0, const Eqptr &y0, const Eqptr &z0, const Eqptr &x1, const Eqptr &y1, const Eqptr &z1);
 
     EL operator()(double x);
@@ -70,28 +87,28 @@ private:
     Eqptr x0, y0, z0, x1, y1, z1;
 };
 
-struct MOVE {
+struct MOVE : MODIFY_CS {
     MOVE(const Eqptr &x, const Eqptr &y, const Eqptr &z);
 
-    TM operator()(double x);
+    std::unique_ptr<M_Matrix> matrix(unsigned int frame) override;
 
 private:
     Eqptr x, y, z;
 };
 
-struct SCALE {
+struct SCALE : MODIFY_CS {
     SCALE(const Eqptr &x, const Eqptr &y, const Eqptr &z);
 
-    SM operator()(double x);
+    std::unique_ptr<M_Matrix> matrix(unsigned int frame) override;
 
 private:
     Eqptr x, y, z;
 };
 
-struct ROTATE {
+struct ROTATE : MODIFY_CS {
     ROTATE(RM::Axis axis, const Eqptr &degrees);
 
-    RM operator()(double x);
+    std::unique_ptr<M_Matrix> matrix(unsigned int frame) override;
 
 private:
     RM::Axis axis;
@@ -110,7 +127,8 @@ struct DISPLAY {
     DISPLAY();
 };
 
+
 typedef std::variant<
-        DRAW_SPHERE, DRAW_TORUS, DRAW_BOX, DRAW_LINE, MOVE, SCALE, ROTATE, PUSH, POP, DISPLAY> Command;
+        PUSH, POP, DISPLAY, DRAW_PTR, MODIFY_CS_PTR, DRAW_LINE> Command;
 
 #endif //CMD_H
