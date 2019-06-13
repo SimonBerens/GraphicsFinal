@@ -1,6 +1,9 @@
 # Simon Berens | Jason Tung
 ## Team we_watch_anime
 
+### specifications
+vary declarations and set frames must occur before calling the command
+
 ### modified features
 #### Treating knobs as variables -- done
 
