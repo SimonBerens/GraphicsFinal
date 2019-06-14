@@ -22,7 +22,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const P_Matrix &matrix);
 
-    void mult(const M_Matrix &modifier); // todo reorganize
+    virtual P_Matrix &mult(const M_Matrix &modifier); // todo reorganize
 private:
     std::vector<P> data;
 

@@ -55,15 +55,6 @@ unique_ptr<FL> DRAW_BOX::matrix(unsigned int frame) {
     return t;
 }
 
-DRAW_LINE::DRAW_LINE(const Eqptr &x0, const Eqptr &y0, const Eqptr &z0, const Eqptr &x1, const Eqptr &y1,
-                     const Eqptr &z1) : x0(x0), y0(y0), z0(z0), x1(x1), y1(y1), z1(z1) {}
-
-EL DRAW_LINE::operator()(double x) {// todo unique ptr?
-    EL t;
-    t.add_edge({x0->eval(x), y0->eval(x), z0->eval(x)}, {x1->eval(x), y1->eval(x), z1->eval(x)});
-    return t;
-}
-
 MOVE::MOVE(const Eqptr &x, const Eqptr &y, const Eqptr &z) : x(x), y(y), z(z) {}
 
 std::unique_ptr<M_Matrix> MOVE::matrix(unsigned int frame) {
@@ -82,8 +73,8 @@ std::unique_ptr<M_Matrix> ROTATE::matrix(unsigned int frame) {
     return std::make_unique<RM>(axis, degrees->eval(frame));
 }
 
-PUSH::PUSH() {}
+PUSH::PUSH() = default;
 
-POP::POP() {}
+POP::POP() = default;
 
-DISPLAY::DISPLAY() {}
+DISPLAY::DISPLAY() = default;

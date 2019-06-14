@@ -11,11 +11,8 @@
 #include "scalables/color.h"
 #include "scalables/P.h"
 #include "scalables/V.h"
-#include "matrices/EdgeList.h"
 #include "matrices/face.h"
 #include "parsing/sym.h"
-
-#define DEFAULT_COLOR Color(28, 237, 66)
 
 template<int width, int height>
 class Frame {
@@ -27,11 +24,12 @@ public:
 
     void write_to(FILE *f) {
         fprintf(f, "P3\n%d %d\n%d\n", width, height, 255);
-        Color *c;
         for (int y = height - 1; y >= 0; y--) {
             for (int x = 0; x < width; x++) {
-                c = &grid[y][x];
-                fprintf(f, "%d %d %d ", Color::bound(c->red()), Color::bound(c->green()), Color::bound(c->blue()));
+                Color &c = grid[y][x];
+
+                fprintf(f, "%d %d %d ", static_cast<int>(c.red()), static_cast<int>(c.green()),
+                        static_cast<int>(c.blue()));
             }
             fprintf(f, "\n");
         }
@@ -139,11 +137,6 @@ public:
         draw_line(p0.x(), p0.y(), p0.z(), p1.x(), p1.y(), p1.z(), c);
     }
 
-    void draw_lines(const EL &el) {
-        for (int i = 0; i < el.cols(); i += 2)
-            draw_line(el[i], el[i + 1], DEFAULT_COLOR);
-    }
-
     static V surface_normal(const P &p0, const P &p1, const P &p2) {
         V a = P(p1 - p0), b = P(p2 - p0);
         return cross(a, b);
@@ -161,7 +154,7 @@ public:
     static Color calculate_color(const P &p0, const P &p1, const P &p2, const Surface &surface) {
         // not yet implemented
         static Color ambient_light(50, 50, 50), point_light_c(255, 255, 255);
-        static P point_light_p(1000, 600, 1000);
+        static P point_light_p(250, 250, 250);
         V view{0, 0, 1};
         // calculation
         int exp = 3;
@@ -172,11 +165,10 @@ public:
         Color diffuse(lnd * surface.diffuse * point_light_c);
         Color specular(
                 pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * surface.specular * point_light_c);
-        return {ambient + diffuse + specular};
+        return Color{ambient.bound() + diffuse.bound() + specular.bound()}.bound();
     }
 
     void draw_scanline(int x0, double z0, int x1, double z1, int y, const Color &c) {
-        //swap if needed to assure left->right drawing
         if (x0 > x1) {
             std::swap(x0, x1);
             std::swap(z0, z1);
@@ -200,7 +192,7 @@ public:
         auto ycomp = [](const P &p0, const P &p1) -> bool {
             return p0.y() == p1.y() ? p0.x() < p1.x() : p0.y() < p1.y();
         };
-        std::array < P, 3 > pts{p0, p1, p2};
+        std::array<P, 3> pts{p0, p1, p2};
         std::sort(pts.begin(), pts.end(), ycomp);
         int yb = pts[0].y(), ym = pts[1].y(), yt = pts[2].y();
         double xb = pts[0].x(), xm = pts[1].x(), xt = pts[2].x(),
@@ -225,11 +217,11 @@ public:
                 x0 += dx0, x1 += dx1, z0 += dz0, z1 += dz1;
             }
         }
-
     }
 
 private:
     std::array<std::array<Color, height>, width> grid;
     std::array<std::array<double, height>, width> zbuf;
 };
+
 #endif //DRAW_H

@@ -11,12 +11,12 @@
 
 using namespace std;
 
-Parser::Parser() : static_image(false), basename("default"), frames(1) {
+Parser::Parser() : static_image(true), basename("default"), frames(1) {
     commands.reserve(128);
 }
 
-void Parser::add_surface(const std::string &name, Sgptr sgprt) { // todo rename add to h
-    surfaces.insert_or_assign(name, sgprt);
+Sgptr Parser::add_surface(const std::string &name, Sgptr sgprt) { // todo rename add to h
+    return surfaces.insert_or_assign(name, sgprt).first->second;
 }
 
 const Sgptr Parser::find_surface(const std::string &name) const {
@@ -24,8 +24,8 @@ const Sgptr Parser::find_surface(const std::string &name) const {
 }
 
 
-void Parser::add_eq(const std::string &name, Eqptr eqptr) {
-    equations.insert_or_assign(name, eqptr);
+Eqptr Parser::add_eq(const std::string &name, Eqptr eqptr) {
+    return equations.insert_or_assign(name, eqptr).first->second;
 }
 
 const Eqptr Parser::find_eq(const std::string &name) {
@@ -34,8 +34,7 @@ const Eqptr Parser::find_eq(const std::string &name) {
     } catch (invalid_argument &e) {
         return equations.at(name);
     }
-    add_eq(name, std::make_shared<Eq>(name, 0)); // todo change return
-    return equations.at(name);
+    return add_eq(name, std::make_shared<Eq>(name, 0));
 }
 
 
@@ -51,8 +50,8 @@ void Parser::lex(std::istream &is) { // todo rename
         string command;
         ss >> command;
         if (command == "constants") {
-            string name, kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb;
-            ss >> name >> kar >> kag >> kab >> kdr >> kdg >> kdb >> ksr >> ksg >> ksb;
+            string name, kar, kdr, ksr, kag, kdg, ksg, kab, kdb, ksb;
+            ss >> name >> kar >> kdr >> ksr >> kag >> kdg >> ksg >> kab >> kdb >> ksb;
             add_surface(name, std::make_shared<SurfaceGenerator>(
                     find_eq(kar), find_eq(kag), find_eq(kab),
                     find_eq(kdr), find_eq(kdg), find_eq(kdb),
@@ -75,12 +74,6 @@ void Parser::lex(std::istream &is) { // todo rename
             add_command(Command{in_place_index<3>, make_shared<DRAW_BOX>(
                     find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(h), find_eq(w), find_eq(d))
             });
-        } else if (command == "line") {
-            string x0, y0, z0, x1, y1, z1;
-            ss >> x0 >> y0 >> z0 >> x1 >> y1 >> z1;
-            add_command(Command{in_place_index<5>, DRAW_LINE{
-                    find_eq(x0), find_eq(y0), find_eq(z0), find_eq(x1), find_eq(y1), find_eq(z1)
-            }}); // todo ask dw if i can remove this
         } else if (command == "move") {
             string x, y, z;
             ss >> x >> y >> z;
@@ -109,6 +102,7 @@ void Parser::lex(std::istream &is) { // todo rename
         } else if (command == "frames") {
             ss >> frames;
         } else if (command == "vary") {
+            static_image = false;
             string name, eq, mode;
             double sf, ef;
             ss >> name >> sf >> ef;
@@ -123,20 +117,16 @@ void Parser::lex(std::istream &is) { // todo rename
             add_eq(name, std::make_shared<Eq>(eq, mode == "relative" ? sf : 0)); // todo error check mode
         }
         line_no++;
-
     }
+//    if ()
 }
 
 void Parser::parse() { // todo rename
 
-    // lighting defaults
-    Surface default_lighting{{0.5},
-                             {0.5},
-                             {0.5}};
-
-
-    system("mkdir build");
-    chdir("./build");
+    if (!static_image) {
+        system("mkdir build");
+        chdir("./build");
+    }
 
     for (int f = 0; f < frames; ++f) {
         cout << "Frame: " << f << endl;
@@ -150,31 +140,31 @@ void Parser::parse() { // todo rename
                 cs_stack.pop();
             } else {
                 if (holds_alternative<DRAW_PTR>(cmd)) {
-                    auto t = get<DRAW_PTR>(cmd)->matrix(f);
-                    t->mult(cs_stack.top()); // todo refactor mult to return edited matrix
-                    frame.draw_faces(*t, default_lighting);// todo fix params so constants works
+                    auto dptr = get<DRAW_PTR>(cmd);
+                    frame.draw_faces(dptr->matrix(f)->mult(cs_stack.top()), *dptr->surface(f));
                 } else if (holds_alternative<MODIFY_CS_PTR>(cmd)) {
                     auto m = get<MODIFY_CS_PTR>(cmd)->matrix(f);
                     m->mult(cs_stack.top());
                     cs_stack.pop();
                     cs_stack.push(*m);
-                } else if (holds_alternative<DRAW_LINE>(cmd)) {
-                    EL t(get<DRAW_LINE>(cmd)(f));
-                    t.mult(cs_stack.top());
-                    frame.draw_lines(t);
                 } else if (holds_alternative<DISPLAY>(cmd)) {
                     FILE *fd = popen("display", "w");
                     frame.write_to(fd);
                     pclose(fd);
                 }
-
             }
-            stringstream fname;
-            fname << setfill('0') << setw(3) << f;
-            frame.save(basename + fname.str());
+            if (static_image)
+                frame.save(basename + ".png");
+            else {
+                stringstream fname;
+                fname << setfill('0') << setw(3) << f;
+                frame.save(basename + fname.str());
+            }
         }
     }
-    chdir("..");
-    system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
-    system("rm -rf ./build");
+    if (!static_image) {
+        chdir("..");
+        system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
+        system("rm -rf ./build");
+    }
 }

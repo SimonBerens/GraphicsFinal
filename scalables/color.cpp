@@ -21,28 +21,33 @@ double Color::red() const {
     return data[0];
 }
 
-double &Color::blue() {
-    return data[1];
-}
-
-double Color::blue() const {
-    return data[1];
-}
 
 double &Color::green() {
-    return data[2];
+    return data[1];
 }
 
 double Color::green() const {
+    return data[1];
+}
+
+double &Color::blue() {
     return data[2];
 }
 
+double Color::blue() const {
+    return data[2];
+}
+
+
 ostream &operator<<(ostream &strm, const Color &c) {
     for (auto &val: c.data)
-        strm << static_cast<int>(Color::bound(val)) << " ";
+        strm << static_cast<int>(val) << " ";
     return strm;
 }
 
-u_char Color::bound(double v) {
-    return static_cast<u_char>(max(0., min(v, 255.)));
+Color &Color::bound() {
+    red() = static_cast<int>(max(0., min(red(), 255.)));
+    green() = static_cast<int>(max(0., min(green(), 255.)));
+    blue() = static_cast<int>(max(0., min(blue(), 255.)));
+    return *this;
 }

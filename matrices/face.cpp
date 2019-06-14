@@ -73,3 +73,8 @@ void FL::add_torus(const P &center, double r0, double r1) {
             i++;
     }
 }
+
+FL &FL::mult(const M_Matrix &modifier) {
+    P_Matrix::mult(modifier);
+    return *this;
+}

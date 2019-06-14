@@ -7,7 +7,6 @@
 #include "../matrices/rm.h"
 #include "../equation_parser.h"
 #include "../matrices/face.h"
-#include "../matrices/EdgeList.h"
 #include "../matrices/tm.h"
 #include "../matrices/sm.h"
 
@@ -78,15 +77,6 @@ private:
     Eqptr ulcx, ulcy, ulcz, width, height, depth;
 };
 
-struct DRAW_LINE { // todo maybe draw
-    DRAW_LINE(const Eqptr &x0, const Eqptr &y0, const Eqptr &z0, const Eqptr &x1, const Eqptr &y1, const Eqptr &z1);
-
-    EL operator()(double x);
-
-private:
-    Eqptr x0, y0, z0, x1, y1, z1;
-};
-
 struct MOVE : MODIFY_CS {
     MOVE(const Eqptr &x, const Eqptr &y, const Eqptr &z);
 
@@ -129,6 +119,6 @@ struct DISPLAY {
 
 
 typedef std::variant<
-        PUSH, POP, DISPLAY, DRAW_PTR, MODIFY_CS_PTR, DRAW_LINE> Command;
+        PUSH, POP, DISPLAY, DRAW_PTR, MODIFY_CS_PTR> Command;
 
 #endif //CMD_H

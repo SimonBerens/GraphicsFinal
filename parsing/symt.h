@@ -15,11 +15,11 @@ public:
 
     void add_command(Command &&command);
 
-    void add_surface(const std::string &name, Sgptr sgptr);
+    Sgptr add_surface(const std::string &name, Sgptr sgprt);
 
     const Sgptr find_surface(const std::string &name) const;
 
-    void add_eq(const std::string &name, Eqptr eqptr);
+    Eqptr add_eq(const std::string &name, Eqptr eqptr);
 
     const Eqptr find_eq(const std::string &name);
 

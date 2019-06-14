@@ -19,7 +19,7 @@ double &P_Matrix::operator()(size_type row, size_type col) {
     return data[col].data[row];
 }
 
-void P_Matrix::mult(const M_Matrix &modifier) {
+P_Matrix &P_Matrix::mult(const M_Matrix &modifier) {
     P_Matrix &m = *this;
     for (int res_col = 0; res_col < cols(); ++res_col) {
         P p = data[res_col];
@@ -30,6 +30,7 @@ void P_Matrix::mult(const M_Matrix &modifier) {
             m(res_row, res_col) = new_val;
         }
     }
+    return *this;
 }
 
 void P_Matrix::add_point(P p) {

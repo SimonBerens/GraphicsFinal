@@ -24,7 +24,7 @@ struct Color : public Scalable<double, 3> {
 
     double green() const;
 
-    static u_char bound(double v);
+    Color &bound();
 
     friend std::ostream &operator<<(std::ostream &strm, const Color &c);
 
