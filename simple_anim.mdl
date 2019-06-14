@@ -6,7 +6,7 @@ vary cy ( * ( sin ( * 3 x ) ) ( sin x ) 100 )
 vary cz 0
 vary lx ( + ( * 100 ( sin ( / ( * x 2 3.1415 ) 80 ) ) ) 250  )
 vary ly ( + ( * 100 ( cos ( / ( * x 2 3.1415 ) 80 ) ) ) 250  )
-vary spinny ( arctan ( / ( + ( * ( * 3 ( cos ( * 3 x ) ) ( sin x ) ) ) ( * ( cos x) ( sin ( * 3 x ) ) ) ) ( - ( * ( * 3 ( cos ( * 3 x ) ) ( cos x ) ) ) ( * ( sin x) ( sin ( * 3 x ) ) ) ) ) )
+vary spinny ( arctan ( / ( + ( * ( * 3 ( cos ( * 3 x ) ) ( sin x ) ) ) ( * ( cos x ) ( sin ( * 3 x ) ) ) ) ( - ( * ( * 3 ( cos ( * 3 x ) ) ( cos x ) ) ) ( * ( sin x ) ( sin ( * 3 x ) ) ) ) ) )
 light 255 0 255 lx ly 30
 
 push 0 80
