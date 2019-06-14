@@ -47,6 +47,12 @@ double Eq::Operation::eval() {
     } else if (op == "tan") {
         param_num_check(1, "tan");
         return tan(params[0]);
+    } else if (op == "arcsin") {
+        param_num_check(1, "arcsin");
+        return asin(params[0]);
+    } else if (op == "arccos") {
+        param_num_check(1, "arccos");
+        return acos(params[0]);
     } else if (op == "arctan") {
         param_num_check(1, "arctan");
         return atan(params[0]);
@@ -64,18 +70,32 @@ double Eq::eval(double x) {
         return stod(s);
     } catch (invalid_argument &e) {}
     stringstream ss(s);
-    stack<Operation> ops;
-    ops.emplace(); // temp to store value
     string token;
+    int paren_balance = 0;
     while (ss >> token) {
         if (token == "(")
+            paren_balance++;
+        else if (token == ")")
+            paren_balance--;
+    }
+    if (paren_balance != 0)
+        throw runtime_error("Mismatched parentheses in equation [" + s + "]");
+    ss = stringstream(s);
+
+    stack<Operation> ops;
+    ops.emplace(); // temp to store value
+    while (ss >> token) {
+        if (token == "(") {
             ops.emplace();
-        else if (token == ")") {
+            paren_balance++;
+        } else if (token == ")") {
             double res = ops.top().eval();
             ops.pop();
             ops.top().params.push_back(res);
+            paren_balance--;
         } else if (token == "+" || token == "-" || token == "*" || token == "/" ||
-                   token == "^" || token == "sin" || token == "cos" || token == "tan")
+                   token == "^" || token == "sin" || token == "cos" || token == "tan" ||
+                   token == "arcsin" || token == "arccos" || token == "arctan")
             ops.top().op = token;
         else if (token == "x")
             ops.top().params.push_back(x);
