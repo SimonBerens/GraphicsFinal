@@ -14,9 +14,9 @@ vary cz 0
 light rcolor gcolor bcolor cx cy 50
 
 push 0 80
-move 250 250 250
+move 250 250 0
 scale 2 2 2
 rotate y 360
 rotate z 360
-sphere brass cx cy cz 25
+sphere brass 0 0 0 25
 pop
