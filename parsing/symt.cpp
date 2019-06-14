@@ -126,6 +126,7 @@ void Parser::lex(std::istream &is) { // todo rename
 }
 
 void Parser::parse() { // todo rename
+//    cout << static_image;
     if (static_image) {
         Frame<500, 500> frame;
         base->exec_world(frame, 0, lights);
