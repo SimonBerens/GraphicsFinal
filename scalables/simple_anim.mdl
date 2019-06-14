@@ -1,0 +1,15 @@
+frames 80
+constants brass 0.329412 0.780392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.807843
+basename simple_20
+vary cx ( * 100 ( sin ( / ( * x 2 3.1415 ) 80 ) ) )
+vary cy ( * 100 ( cos ( / ( * x 2 3.1415 ) 80 ) ) )
+vary cz 0
+
+
+push 0 80
+move 250 250 250
+scale 2 2 2
+rotate y 360
+rotate z 360
+sphere brass cx cy cz 25
+pop
