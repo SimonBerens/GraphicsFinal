@@ -13,6 +13,9 @@ cmake-build-debug
 *.jpeg
 *.gif
 
+# gif builder
+build/
+
 # temp files
 *~
 

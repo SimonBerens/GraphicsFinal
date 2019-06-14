@@ -1,21 +1,14 @@
-OBJECTS=symt.o cmd.o sym.o V.o P.o color.o EdgeList.o face.o m_matri.o p_matrix.o rm.o sm.o tm.o
-LDFLAGS=-lm
 CC=g++ -std=c++17
 CFLAGS=-g
 
-file=simple_anim.mdl
-# todo reorder
-all: parser
-	./exec.zzz $(file)
+all: exec.zzz
+	./exec.zzz
 
-parser: lex.yy.c y.tab.c y.tab.h $(OBJECTS)
-	$(CC) $(CFLAGS) lex.yy.c y.tab.c $(OBJECTS) $(LDFLAGS) -o exec.zzz
+exec.zzz: main.o symt.o cmd.o sym.o equation_parser.o P.o V.o color.o p_matrix.o m_matri.o face.o rm.o sm.o tm.o
+	$(CC) $(CFLAGS) -o exec.zzz main.o symt.o cmd.o sym.o equation_parser.o P.o V.o color.o p_matrix.o m_matri.o face.o rm.o sm.o tm.o
 
-lex.yy.c: my_mdl.l y.tab.h
-	flex -I -o lex.yy.c my_mdl.l
-
-y.tab.c y.tab.h: my_mdl.y parsing/symt.h
-	bison -d -y my_mdl.y
+main.o: main.cpp
+	$(CC) $(CFLAGS) -c main.cpp
 
 symt.o: parsing/symt.cpp parsing/symt.h
 	$(CC) $(CFLAGS) -c parsing/symt.cpp
@@ -26,26 +19,26 @@ cmd.o: parsing/cmd.h parsing/cmd.cpp
 sym.o: parsing/sym.h parsing/sym.cpp
 	$(CC) $(CFLAGS) -c parsing/sym.cpp
 
-V.o: scalables/V.cpp scalables/V.h
-	$(CC) $(CFLAGS) -c scalables/V.cpp
+equation_parser.o: equation_parser.cpp equation_parser.h
+	$(CC) $(CFLAGS) -c equation_parser.cpp
 
-P.o: scalables/P.cpp scalables/P.h
+P.o: scalables/P.cpp scalables/P.h scalables/scalable.h
 	$(CC) $(CFLAGS) -c scalables/P.cpp
 
-color.o: scalables/color.cpp scalables/color.h
+V.o: scalables/V.cpp scalables/V.h scalables/scalable.h
+	$(CC) $(CFLAGS) -c scalables/V.cpp
+
+color.o: scalables/color.cpp scalables/color.h scalables/scalable.h
 	$(CC) $(CFLAGS) -c scalables/color.cpp
 
-EdgeList.o: matrices/EdgeList.cpp matrices/EdgeList.h
-	$(CC) $(CFLAGS) -c matrices/EdgeList.cpp
-
-face.o: matrices/face.cpp matrices/face.h
-	$(CC) $(CFLAGS) -c matrices/face.cpp
+p_matrix.o: matrices/p_matrix.cpp matrices/p_matrix.h
+	$(CC) $(CFLAGS) -c matrices/p_matrix.cpp
 
 m_matri.o: matrices/m_matri.cpp matrices/m_matri.h
 	$(CC) $(CFLAGS) -c matrices/m_matri.cpp
 
-p_matrix.o: matrices/p_matrix.cpp matrices/p_matrix.h
-	$(CC) $(CFLAGS) -c matrices/p_matrix.cpp
+face.o: matrices/face.cpp matrices/face.h
+	$(CC) $(CFLAGS) -c matrices/face.cpp
 
 rm.o: matrices/rm.cpp matrices/rm.h
 	$(CC) $(CFLAGS) -c matrices/rm.cpp
@@ -57,4 +50,4 @@ tm.o: matrices/tm.cpp matrices/tm.h
 	$(CC) $(CFLAGS) -c matrices/tm.cpp
 
 clean:
-	rm y.tab.c y.tab.h lex.yy.c *.o *.zzz -rf ./build
+	rm *.o *.zzz
