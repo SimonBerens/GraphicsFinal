@@ -10,6 +10,8 @@
 #include <numeric>
 #include "equation_parser.h"
 
+
+// todo rename files
 using namespace std;
 
 Eq::Operation::Operation() : op() {
@@ -43,7 +45,10 @@ double Eq::Operation::eval() {
         return cos(params[0]);
     } else if (op == "tan") {
         param_num_check(1, "tan");
-        return cos(params[0]);
+        return tan(params[0]);
+    } else if (op == "arctan") {
+        param_num_check(1, "arctan");
+        return atan(params[0]);
     } else {
         throw runtime_error(string("unknown operation [") + op + "]");
     }
@@ -67,7 +72,6 @@ double Eq::eval(double x) {
         else if (token == ")") {
             double res = ops.top().eval();
             ops.pop();
-//
             ops.top().params.push_back(res);
         } else if (token == "+" || token == "-" || token == "*" || token == "/" ||
                    token == "^" || token == "sin" || token == "cos" || token == "tan")

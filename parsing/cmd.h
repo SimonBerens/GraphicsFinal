@@ -20,7 +20,7 @@ public:
                      const Eqptr &kdr, const Eqptr &kdg, const Eqptr &kdb,
                      const Eqptr &ksr, const Eqptr &ksg, const Eqptr &ksb);
 
-    std::unique_ptr<Surface> eval(double x);
+    std::unique_ptr<Surface> eval(double x); // todo rename x
 
 private:
     Eqptr kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb;
@@ -28,6 +28,19 @@ private:
 
 typedef std::shared_ptr<SurfaceGenerator> Sgptr;
 
+class LightGenerator {
+public:
+
+    LightGenerator(const Eqptr &red, const Eqptr &green, const Eqptr &blue, const Eqptr &x, const Eqptr &y,
+                   const Eqptr &z);
+
+    std::unique_ptr<Light> eval(double frames); // todo rename
+
+private:
+    Eqptr red, green, blue, x, y, z;
+};
+
+typedef std::shared_ptr<LightGenerator> Lgptr;
 
 struct DRAW {
     explicit DRAW(Sgptr sgptr);
@@ -137,19 +150,24 @@ struct WORLD {
     unsigned int end_frame;
 
     template<int width, int height>
-    void exec_world(Frame<width, height> &frame, unsigned int frame_no, M_Matrix base_cs = M_Matrix()) {
+    void exec_world(Frame<width, height> &frame, unsigned int frame_no,
+                    const std::vector<Lgptr> &light_generators, M_Matrix base_cs = M_Matrix()) {
         if (frame_no >= start_frame && frame_no <= end_frame) {
+            std::vector<Light> lights;
+            std::transform(light_generators.begin(), light_generators.end(), std::back_inserter(lights),
+                           [frame_no](const Lgptr &lgptr) -> Light { return *lgptr->eval(frame_no); });
             unsigned int relative_frame_no = frame_no - start_frame;
             for (auto &cmd: commands) {
                 if (std::holds_alternative<DRAW_PTR>(cmd)) {
                     auto dptr = std::get<DRAW_PTR>(cmd);
-                    frame.draw_faces(dptr->matrix(relative_frame_no)->mult(base_cs), *dptr->surface(relative_frame_no));
+                    frame.draw_faces(dptr->matrix(relative_frame_no)->mult(base_cs), *dptr->surface(relative_frame_no),
+                                     lights);
                 } else if (std::holds_alternative<MODIFY_CS_PTR>(cmd)) {
                     auto m = std::get<MODIFY_CS_PTR>(cmd)->matrix(relative_frame_no);
                     m->mult(base_cs);
                     base_cs = *m;
                 } else if (std::holds_alternative<WORLD_PTR>(cmd)) {
-                    std::get<WORLD_PTR>(cmd)->exec_world(frame, frame_no, base_cs);
+                    std::get<WORLD_PTR>(cmd)->exec_world(frame, frame_no, light_generators, base_cs);
                 }
             }
         }

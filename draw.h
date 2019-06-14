@@ -142,30 +142,36 @@ public:
         return cross(a, b);
     }
 
-    void draw_faces(const FL &tm, const Surface &surface) { // todo names
+    void draw_faces(const FL &tm, const Surface &surface, const std::vector<Light> &lights) { // todo names
         for (int i = 0; i < tm.cols(); i += 3) {
             V normal = surface_normal(tm[i], tm[i + 1], tm[i + 2]);
             V view(0, 0, 1);
             if (dot(view, normal) > 0)
-                fill_triangle(tm[i], tm[i + 1], tm[i + 2], surface);
+                fill_triangle(tm[i], tm[i + 1], tm[i + 2], surface, lights);
         }
     }
 
-    static Color calculate_color(const P &p0, const P &p1, const P &p2, const Surface &surface) {
+    static Color
+    calculate_color(const P &p0, const P &p1, const P &p2, const Surface &surface, const std::vector<Light> &lights) {
         // not yet implemented
-        static Color ambient_light(50, 50, 50), point_light_c(255, 255, 255);
-        static P point_light_p(250, 250, 1000);
+        static Color ambient_light(50, 50, 50);
         V view{0, 0, 1};
         // calculation
         int exp = 3;
         V normal = surface_normal(p0, p1, p2);
-        V l = P(point_light_p - p0);
-        Color ambient = surface.ambient * ambient_light;
-        double lnd = dot(l.normalized(), normal.normalized());
-        Color diffuse(lnd * surface.diffuse * point_light_c);
-        Color specular(
-                pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * surface.specular * point_light_c);
-        return Color{ambient.bound() + diffuse.bound() + specular.bound()}.bound();
+
+        Color ret;
+        for (auto &light : lights) {
+            V l = P(light.location - p0);
+            Color ambient = surface.ambient * ambient_light;
+            double lnd = dot(l.normalized(), normal.normalized());
+            Color diffuse(lnd * surface.diffuse * light.color);
+            Color specular(
+                    pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * surface.specular *
+                    light.color);
+            ret = ret + ambient + diffuse + specular;
+        }
+        return ret.bound();
     }
 
     void draw_scanline(int x0, double z0, int x1, double z1, int y, const Color &c) {
@@ -186,8 +192,9 @@ public:
     }
 
 
-    void fill_triangle(const P &p0, const P &p1, const P &p2, const Surface &surface) {
-        Color c = calculate_color(p0, p1, p2, surface);
+    void
+    fill_triangle(const P &p0, const P &p1, const P &p2, const Surface &surface, const std::vector<Light> &lights) {
+        Color c = calculate_color(p0, p1, p2, surface, lights);
 
         auto ycomp = [](const P &p0, const P &p1) -> bool {
             return p0.y() == p1.y() ? p0.x() < p1.x() : p0.y() < p1.y();

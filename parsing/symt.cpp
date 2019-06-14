@@ -59,6 +59,17 @@ void Parser::lex(std::istream &is) { // todo rename
                     find_eq(kdr), find_eq(kdg), find_eq(kdb),
                     find_eq(ksr), find_eq(ksg), find_eq(ksb))
             );
+        } else if (command == "vary") {
+            static_image = false;
+            string name, eq;
+            ss >> name;
+            getline(ss, eq);
+            add_eq(name, std::make_shared<Eq>(eq)); // todo error check mode
+        } else if (command == "light") {
+            string r, g, b, x, y, z;
+            ss >> r >> g >> b >> x >> y >> z;
+            lights.push_back(make_shared<LightGenerator>(find_eq(r), find_eq(g), find_eq(b), find_eq(x), find_eq(y),
+                                                         find_eq(z)));
         } else if (command == "sphere") {
             string surface_name, x, y, z, radius; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> radius;
@@ -84,20 +95,20 @@ void Parser::lex(std::istream &is) { // todo rename
         } else if (command == "scale") {
             string x, y, z;
             ss >> x >> y >> z;
-            worlds.top()->commands.emplace_back(in_place_index<1>,
-                                                make_shared<SCALE>(find_eq(x), find_eq(y), find_eq(z)));
+            worlds.top()->commands.emplace_back(
+                    in_place_index<1>, make_shared<SCALE>(find_eq(x), find_eq(y), find_eq(z)));
         } else if (command == "rotate") {
             string axis, degrees;
             ss >> axis >> degrees;
             worlds.top()->commands.emplace_back(in_place_index<1>, make_shared<ROTATE>(
                     axis == "X" ? RM::X : axis == "Y" ? RM::Y : RM::Z, // todo error check this
-                    find_eq(degrees)));
+                    find_eq(degrees))); // todo lowercase
         } else if (command == "push") {
             double sf, ef;
             ss >> sf >> ef;
-            auto worldptr = make_shared<WORLD>(sf, ef);
-            worlds.top()->commands.emplace_back(in_place_index<2>, worldptr);
-            worlds.push(worldptr); // todo constructor
+            auto world_ptr = make_shared<WORLD>(sf, ef);
+            worlds.top()->commands.emplace_back(in_place_index<2>, world_ptr);
+            worlds.push(world_ptr);
         } else if (command == "pop") {
             worlds.pop();
         } else if (command == "display") {
@@ -108,12 +119,6 @@ void Parser::lex(std::istream &is) { // todo rename
         } else if (command == "frames") {
             ss >> frames;
             base->end_frame = frames;
-        } else if (command == "vary") {
-            static_image = false;
-            string name, eq;
-            ss >> name;
-            getline(ss, eq);
-            add_eq(name, std::make_shared<Eq>(eq)); // todo error check mode
         }
         // todo check empty line
         line_no++;
@@ -123,7 +128,7 @@ void Parser::lex(std::istream &is) { // todo rename
 void Parser::parse() { // todo rename
     if (static_image) {
         Frame<500, 500> frame;
-        base->exec_world(frame, 0);
+        base->exec_world(frame, 0, lights);
         frame.save(basename + ".png");
     } else {
         system("mkdir build");
@@ -131,7 +136,7 @@ void Parser::parse() { // todo rename
         for (int f = 0; f < frames; ++f) {
             cout << "Frame: " << f << endl;
             Frame<500, 500> frame;
-            base->exec_world(frame, f);
+            base->exec_world(frame, f, lights);
             stringstream fname;
             fname << setfill('0') << setw(3) << f;
             frame.save(basename + fname.str() + ".png");

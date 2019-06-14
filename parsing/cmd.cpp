@@ -18,6 +18,14 @@ std::unique_ptr<Surface> SurfaceGenerator::eval(double x) {
 }
 
 
+LightGenerator::LightGenerator(const Eqptr &red, const Eqptr &green, const Eqptr &blue, const Eqptr &x, const Eqptr &y,
+                               const Eqptr &z) : red(red), green(green), blue(blue), x(x), y(y), z(z) {}
+
+std::unique_ptr<Light> LightGenerator::eval(double frames) { // todo rename
+    return make_unique<Light>(Color{red->eval(frames), green->eval(frames), blue->eval(frames)},
+                              P{x->eval(frames), y->eval(frames), z->eval(frames)});
+}
+
 DRAW::DRAW(Sgptr sgptr) : sgptr(sgptr) {} // todo move???
 
 std::unique_ptr<Surface> DRAW::surface(unsigned int frame) {
@@ -26,6 +34,7 @@ std::unique_ptr<Surface> DRAW::surface(unsigned int frame) {
 
 DRAW_SPHERE::DRAW_SPHERE(const Sgptr &sgptr, const Eqptr &cx, const Eqptr &cy, const Eqptr &cz, const Eqptr &radius)
         : DRAW(sgptr), cx(cx), cy(cy), cz(cz), radius(radius) {}
+
 
 unique_ptr<FL> DRAW_SPHERE::matrix(unsigned int frame) {
     auto t = std::make_unique<FL>();
@@ -46,7 +55,6 @@ unique_ptr<FL> DRAW_TORUS::matrix(unsigned int frame) {
 DRAW_BOX::DRAW_BOX(const Sgptr &sgptr, const Eqptr &ulcx, const Eqptr &ulcy, const Eqptr &ulcz, const Eqptr &width,
                    const Eqptr &height, const Eqptr &depth) : DRAW(sgptr), ulcx(ulcx), ulcy(ulcy), ulcz(ulcz),
                                                               width(width), height(height), depth(depth) {}
-
 
 unique_ptr<FL> DRAW_BOX::matrix(unsigned int frame) {
     auto t = std::make_unique<FL>();
@@ -78,4 +86,3 @@ PUSH::PUSH() = default;
 POP::POP() = default;
 
 DISPLAY::DISPLAY() = default;
-

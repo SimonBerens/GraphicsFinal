@@ -36,6 +36,7 @@ private:
     std::vector<Command> commands;
     std::map<std::string, Eqptr> equations;
     std::map<std::string, Sgptr> surfaces;
+    std::vector<Lgptr> lights;
 };
 
 

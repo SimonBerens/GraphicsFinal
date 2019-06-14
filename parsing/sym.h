@@ -19,32 +19,11 @@ struct Surface {
     Scalable<double, 3> specular;
 };
 
+struct Light {
+    Light(const Color &color, const P &location);
 
-//struct SymData {
-//    enum Type {
-//        MODIFIER,
-//        SURFACE,
-////        EQUATION, // todo uncomment
-//                VALUE
-//    };
-//
-//    SymData(M_Matrix modifier) : modifier(modifier) { // todo reference
-//        t = MODIFIER;
-//    }
-//
-//    SymData(Surface surface) : surface(surface) { // todo reference
-//        t = SURFACE;
-//    }
-//
-//    Type t;
-//    union {
-//        M_Matrix modifier;
-//        Surface surface; // todo pointerize
-////        std::string equation;
-//        double value;
-//    };
-//};
-
-typedef std::variant<Surface, M_Matrix, double> SymData;
+    Color color;
+    P location;
+};
 
 #endif //SYM_H

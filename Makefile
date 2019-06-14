@@ -1,5 +1,5 @@
 CC=g++ -std=c++17
-CFLAGS=-g
+CFLAGS=-O3
 
 all: exec.zzz
 	./exec.zzz
