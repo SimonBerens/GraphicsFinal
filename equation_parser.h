@@ -8,7 +8,7 @@ class Eq {
 public:
     double eval(double x);
 
-    Eq(std::string s, double offset);
+    explicit Eq(std::string s);
 
 private:
     struct Operation {
@@ -24,7 +24,6 @@ private:
         double eval();
     };
 
-    double offset;
     std::string s;
 };
 

@@ -9,6 +9,7 @@
 #include "../matrices/face.h"
 #include "../matrices/tm.h"
 #include "../matrices/sm.h"
+#include "../draw.h"
 
 typedef std::shared_ptr<Eq> Eqptr;
 
@@ -120,5 +121,39 @@ struct DISPLAY {
 
 typedef std::variant<
         PUSH, POP, DISPLAY, DRAW_PTR, MODIFY_CS_PTR> Command;
+
+struct WORLD {
+
+    WORLD(unsigned int startFrame, unsigned int endFrame) : start_frame(startFrame), end_frame(endFrame) {
+        commands.reserve(16);
+    }
+
+    typedef std::shared_ptr<WORLD> WORLD_PTR;
+
+    typedef std::variant<DRAW_PTR, MODIFY_CS_PTR, WORLD_PTR> Command;
+    std::vector<Command> commands;
+
+    unsigned int start_frame;
+    unsigned int end_frame;
+
+    template<int width, int height>
+    void exec_world(Frame<width, height> &frame, unsigned int frame_no, M_Matrix base_cs = M_Matrix()) {
+        if (frame_no >= start_frame && frame_no <= end_frame) {
+            unsigned int relative_frame_no = frame_no - start_frame;
+            for (auto &cmd: commands) {
+                if (std::holds_alternative<DRAW_PTR>(cmd)) {
+                    auto dptr = std::get<DRAW_PTR>(cmd);
+                    frame.draw_faces(dptr->matrix(relative_frame_no)->mult(base_cs), *dptr->surface(relative_frame_no));
+                } else if (std::holds_alternative<MODIFY_CS_PTR>(cmd)) {
+                    auto m = std::get<MODIFY_CS_PTR>(cmd)->matrix(relative_frame_no);
+                    m->mult(base_cs);
+                    base_cs = *m;
+                } else if (std::holds_alternative<WORLD_PTR>(cmd)) {
+                    std::get<WORLD_PTR>(cmd)->exec_world(frame, frame_no, base_cs);
+                }
+            }
+        }
+    }
+};
 
 #endif //CMD_H

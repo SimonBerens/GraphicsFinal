@@ -29,7 +29,7 @@ public:
 
 private:
 
-    // todo states eg frames basename
+    WORLD::WORLD_PTR base;
     std::string basename;
     int frames;
     bool static_image;

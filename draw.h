@@ -154,7 +154,7 @@ public:
     static Color calculate_color(const P &p0, const P &p1, const P &p2, const Surface &surface) {
         // not yet implemented
         static Color ambient_light(50, 50, 50), point_light_c(255, 255, 255);
-        static P point_light_p(250, 250, 250);
+        static P point_light_p(250, 250, 1000);
         V view{0, 0, 1};
         // calculation
         int exp = 3;

@@ -70,7 +70,7 @@ double Eq::eval(double x) {
                    token == "^" || token == "sin" || token == "cos" || token == "tan")
             ops.top().op = token;
         else if (token == "x")
-            ops.top().params.push_back(x - offset);
+            ops.top().params.push_back(x);
         else {
             try {
                 ops.top().params.push_back(stod(token));
@@ -82,4 +82,4 @@ double Eq::eval(double x) {
     return ops.top().params[0];
 }
 
-Eq::Eq(string s, double offset) : s(std::move(s)), offset(offset) {}
+Eq::Eq(string s) : s(std::move(s)) {}
