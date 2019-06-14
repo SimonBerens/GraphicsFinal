@@ -5,7 +5,7 @@
 using namespace std;
 
 int main() {
-    ifstream file("simple_anim.mdl");
+    ifstream file("rocket.mdl");
     Parser p;
     p.lex(file);
     p.parse();

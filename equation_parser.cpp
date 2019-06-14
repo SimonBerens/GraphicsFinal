@@ -49,6 +49,8 @@ double Eq::Operation::eval() {
     }
 }
 
+//evaluates a string
+
 double Eq::eval(double x) {
     if (s == "x")
         return x;
@@ -65,6 +67,7 @@ double Eq::eval(double x) {
         else if (token == ")") {
             double res = ops.top().eval();
             ops.pop();
+//
             ops.top().params.push_back(res);
         } else if (token == "+" || token == "-" || token == "*" || token == "/" ||
                    token == "^" || token == "sin" || token == "cos" || token == "tan")

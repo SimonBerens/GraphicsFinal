@@ -1,0 +1,11 @@
+frames 360
+basename rocket
+constants brass 0.329412 0.780392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.807843
+vary moviex ( * ( sin ( * 3 x ) ) ( cos x ) ) absolute
+vary moviey ( * ( sin ( * 3 x ) ) ( sin x ) ) absolute
+vary spinny ( * ( cos ( * 3 x ) 3 ) absolute
+
+push
+move moviex moviey 0
+rotate spinny
+torus brass 0 0 0 75 125
