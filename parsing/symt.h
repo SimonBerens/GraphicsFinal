@@ -29,6 +29,8 @@ public:
 
 private:
 
+    static void check_sys_call(int result);
+
     WORLD::WORLD_PTR base;
     std::string basename;
     int frames;

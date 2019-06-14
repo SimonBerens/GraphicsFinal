@@ -125,15 +125,19 @@ void Parser::lex(std::istream &is) { // todo rename
     }
 }
 
+void Parser::check_sys_call(int result) {
+    if (result != 0)
+        throw runtime_error("system call failed");
+}
+
 void Parser::parse() { // todo rename
-//    cout << static_image;
     if (static_image) {
         Frame<500, 500> frame;
         base->exec_world(frame, 0, lights);
         frame.save(basename + ".png");
     } else {
-        system("mkdir build");
-        chdir("./build");
+        check_sys_call(system("mkdir build"));
+        check_sys_call(chdir("./build"));
         for (int f = 0; f < frames; ++f) {
             cout << "Frame: " << f << endl;
             Frame<500, 500> frame;
@@ -142,8 +146,8 @@ void Parser::parse() { // todo rename
             fname << setfill('0') << setw(3) << f;
             frame.save(basename + fname.str() + ".png");
         }
-        chdir("..");
-        system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str());
-        system("rm -rf ./build");
+        check_sys_call(chdir(".."));
+        check_sys_call(system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str()));
+        check_sys_call(system("rm -rf ./build"));
     }
 }
