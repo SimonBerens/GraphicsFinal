@@ -169,7 +169,7 @@ public:
             Color specular(
                     pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * surface.specular *
                     light.color);
-            ret = ret + ambient + diffuse + specular;
+            ret = ret + ambient + diffuse.bound() + specular.bound();
         }
         return ret.bound();
     }
