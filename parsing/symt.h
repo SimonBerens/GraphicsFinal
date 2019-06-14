@@ -33,7 +33,7 @@ private:
 
     WORLD::WORLD_PTR base;
     std::string basename;
-    int frames;
+    unsigned int frames;
     bool static_image;
     std::vector<Command> commands;
     std::map<std::string, Eqptr> equations;

@@ -20,7 +20,8 @@ Eq::Operation::Operation() : op() {
 
 void Eq::Operation::param_num_check(int num_required, const std::string &op_attempted) {
     if (params.size() != num_required)
-        throw runtime_error(op_attempted + " undefined for more or less than " + to_string(num_required) + " parameters");
+        throw runtime_error(
+                op_attempted + " undefined for more or less than " + to_string(num_required) + " parameters");
 }
 
 double Eq::Operation::eval() {
@@ -78,6 +79,10 @@ double Eq::eval(double x) {
             ops.top().op = token;
         else if (token == "x")
             ops.top().params.push_back(x);
+        else if (token == "e")
+            ops.top().params.push_back(M_E);
+        else if (token == "pi")
+            ops.top().params.push_back(M_PI);
         else {
             try {
                 ops.top().params.push_back(stod(token));
