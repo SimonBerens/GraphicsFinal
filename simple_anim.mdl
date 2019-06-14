@@ -1,15 +1,18 @@
-frames 80
-constants brass 0.329412 0.780392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.807843
+frames 140
+constants brass 0.329412 0.7140392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.1407843
 basename simple_20
-vary cx ( * ( sin ( * 3 x ) ) ( cos x ) 2 )
-vary cy ( * ( sin ( * 3 x ) ) ( sin x ) 2 )
+vary cx ( * ( sin ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ( cos ( * 2 pi ( / x 140 ) ) ) 175 )
+vary cy ( * ( sin ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ( sin ( * 2 pi ( / x 140 ) ) ) 175 )
 vary cz 0
-vary lx ( + 250 ( * ( sin ( * 3 x ) ) ( cos x ) 2 ) )
-vary ly ( + 250 ( * ( sin ( * 3 x ) ) ( sin x ) 2 ) )
-vary spinny ( arctan ( / ( + ( * ( * 3 ( cos ( * 3 x ) ) ( sin x ) ) ) ( * ( cos x ) ( sin ( * 3 x ) ) ) ) ( - ( * ( * 3 ( cos ( * 3 x ) ) ( cos x ) ) ) ( * ( sin x ) ( sin ( * 3 x ) ) ) ) ) )
+vary lx ( + 250 ( * ( sin ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ( cos ( * 2 pi ( / x 140 ) ) ) 2 ) )
+vary ly ( + 250 ( * ( sin ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ( sin ( * 2 pi ( / x 140 ) ) ) 2 ) )
+vary spinny ( arctan ( / ( + ( * ( * 3 ( cos ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ( sin ( * 2 pi ( / x 140 ) ) ) ) ) ( * ( cos ( * 2 pi ( / x 140 ) ) ) ( sin ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ) ) ( - ( * ( * 3 ( cos ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ( cos ( * 2 pi ( / x 140 ) ) ) ) ) ( * ( sin ( * 2 pi ( / x 140 ) ) ) ( sin ( * 3 ( * 2 pi ( / x 140 ) ) ) ) ) ) ) )
 light 255 0 255 lx ly 30
+light 255 255 0 250 200 0
+light 255 0 255	300 200	0
+light 0 255 255 250 300	0
 
-push 0 80
+push 0 140
 move 250 250 0
 move cx cy cz
 rotate z spinny
