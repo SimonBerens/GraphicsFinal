@@ -136,7 +136,7 @@ void Parser::parse() { // todo rename
         base->exec_world(frame, 0, lights);
         frame.save(basename + ".png");
     } else {
-        check_sys_call(system("mkdir build"));
+        check_sys_call(system("mkdir -p build"));
         check_sys_call(chdir("./build"));
         for (int f = 0; f < frames; ++f) {
             cout << "Frame: " << f << endl;
@@ -147,7 +147,7 @@ void Parser::parse() { // todo rename
             frame.save(basename + fname.str() + ".png");
         }
         check_sys_call(chdir(".."));
-        check_sys_call(system((string("convert -delay 1.7 build/") + basename + "* " + basename + ".gif").c_str()));
+        check_sys_call(system(("convert -delay 1.7 build/" + basename + "* " + basename + ".gif").c_str()));
         check_sys_call(system("rm -rf ./build"));
     }
 }
