@@ -1,10 +1,6 @@
 frames 80
 constants brass 0.329412 0.780392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.807843
 basename simple_20
-vary rmove ( + x 130 )
-vary gcolor ( * 255 ( cos ( / ( * x ( * 2 pi ) ) 80 ) ) ) 
-vary bcolor ( * 255 ( sin ( / ( * x ( * 2 pi ) ) 80 ) ) ) 
-vary rcolor ( * 255 ( cos ( / ( * x ( * 2 pi ) ) 80 ) ) ) 
 vary cx ( * ( sin ( * 3 x ) ) ( cos x ) 100 )
 vary cy ( * ( sin ( * 3 x ) ) ( sin x ) 100 )
 vary cz 0
