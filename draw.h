@@ -1,18 +1,18 @@
-#ifndef DRAW_HL
-#define DRAW_HL
+#ifndef DRAW_H
+#define DRAW_H
 
 #include <algorithm>
 #include <cfloat>
-#include <random>
 #include <iostream>
 #include <array>
 #include <cmath>
 #include <cfloat>
 #include "scalables/color.h"
-#include "scalables/P.h"
-#include "scalables/V.h"
-#include "matrices/face.h"
-#include "parsing/sym.h"
+#include "scalables/point.h"
+#include "scalables/vec.h"
+#include "matrices/face_list.h"
+#include "parsing/light.h"
+#include "parsing/surface.h"
 
 template<int width, int height>
 class Frame {
@@ -27,9 +27,8 @@ public:
         for (int y = height - 1; y >= 0; y--) {
             for (int x = 0; x < width; x++) {
                 Color &c = grid[y][x];
-
-                fprintf(f, "%d %d %d ", static_cast<int>(c.red()), static_cast<int>(c.green()),
-                        static_cast<int>(c.blue()));
+                fprintf(f, "%d %d %d ",
+                        static_cast<int>(c.red()), static_cast<int>(c.green()), static_cast<int>(c.blue()));
             }
             fprintf(f, "\n");
         }
@@ -133,36 +132,37 @@ public:
     }
 
 
-    void draw_line(const P &p0, const P &p1, const Color &c) {
+    void draw_line(const Point &p0, const Point &p1, const Color &c) {
         draw_line(p0.x(), p0.y(), p0.z(), p1.x(), p1.y(), p1.z(), c);
     }
 
-    static V surface_normal(const P &p0, const P &p1, const P &p2) {
-        V a = P(p1 - p0), b = P(p2 - p0);
+    static Vec3D surface_normal(const Point &p0, const Point &p1, const Point &p2) {
+        Vec3D a = Point(p1 - p0), b = Point(p2 - p0);
         return cross(a, b);
     }
 
-    void draw_faces(const FL &tm, const Surface &surface, const std::vector<Light> &lights) { // todo names
-        for (int i = 0; i < tm.cols(); i += 3) {
-            V normal = surface_normal(tm[i], tm[i + 1], tm[i + 2]);
-            V view(0, 0, 1);
+    void draw_faces(const FaceList &fl, const Surface &surface, const std::vector<Light> &lights) {
+        for (int i = 0; i < fl.cols(); i += 3) {
+            Vec3D normal = surface_normal(fl[i], fl[i + 1], fl[i + 2]);
+            Vec3D view(0, 0, 1);
             if (dot(view, normal) > 0)
-                fill_triangle(tm[i], tm[i + 1], tm[i + 2], surface, lights);
+                fill_triangle(fl[i], fl[i + 1], fl[i + 2], surface, lights);
         }
     }
 
     static Color
-    calculate_color(const P &p0, const P &p1, const P &p2, const Surface &surface, const std::vector<Light> &lights) {
+    calculate_color(const Point &p0, const Point &p1, const Point &p2, const Surface &surface,
+                    const std::vector<Light> &lights) {
         // not yet implemented
         static Color ambient_light(50, 50, 50);
-        V view{0, 0, 1};
+        Vec3D view{0, 0, 1};
         // calculation
         int exp = 3;
-        V normal = surface_normal(p0, p1, p2);
+        Vec3D normal = surface_normal(p0, p1, p2);
 
         Color ret;
         for (auto &light : lights) {
-            V l = P(light.location - p0);
+            Vec3D l = Point(light.location - p0);
             Color ambient = surface.ambient * ambient_light;
             double lnd = dot(l.normalized(), normal.normalized());
             Color diffuse(lnd * surface.diffuse * light.color);
@@ -193,13 +193,14 @@ public:
 
 
     void
-    fill_triangle(const P &p0, const P &p1, const P &p2, const Surface &surface, const std::vector<Light> &lights) {
+    fill_triangle(const Point &p0, const Point &p1, const Point &p2, const Surface &surface,
+                  const std::vector<Light> &lights) {
         Color c = calculate_color(p0, p1, p2, surface, lights);
 
-        auto ycomp = [](const P &p0, const P &p1) -> bool {
+        auto ycomp = [](const Point &p0, const Point &p1) -> bool {
             return p0.y() == p1.y() ? p0.x() < p1.x() : p0.y() < p1.y();
         };
-        std::array<P, 3> pts{p0, p1, p2};
+        std::array<Point, 3> pts{p0, p1, p2};
         std::sort(pts.begin(), pts.end(), ycomp);
         int yb = pts[0].y(), ym = pts[1].y(), yt = pts[2].y();
         double xb = pts[0].x(), xm = pts[1].x(), xt = pts[2].x(),

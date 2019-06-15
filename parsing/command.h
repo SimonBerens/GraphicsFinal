@@ -1,26 +1,26 @@
-#ifndef CMD_H
-#define CMD_H
+#ifndef COMMAND_H
+#define COMMAND_H
 
 #include <memory>
 #include <variant>
-#include "sym.h"
-#include "../matrices/rm.h"
-#include "../equation_parser.h"
-#include "../matrices/face.h"
-#include "../matrices/tm.h"
-#include "../matrices/sm.h"
+#include "light.h"
+#include "../matrices/rotation_matrix.h"
+#include "equation.h"
+#include "../matrices/face_list.h"
+#include "../matrices/translation_matrix.h"
+#include "../matrices/scale_matrix.h"
 #include "../draw.h"
+#include "surface.h"
 
-typedef std::shared_ptr<Eq> Eqptr;
+typedef std::shared_ptr<Equation> Eqptr;
 
 class SurfaceGenerator {
 public:
-// todo optimize pointers
-    SurfaceGenerator(const Eqptr &kar, const Eqptr &kag, const Eqptr &kab,
-                     const Eqptr &kdr, const Eqptr &kdg, const Eqptr &kdb,
-                     const Eqptr &ksr, const Eqptr &ksg, const Eqptr &ksb);
+    SurfaceGenerator(Eqptr kar, Eqptr kag, Eqptr kab,
+                     Eqptr kdr, Eqptr kdg, Eqptr kdb,
+                     Eqptr ksr, Eqptr ksg, Eqptr ksb);
 
-    std::unique_ptr<Surface> eval(double x); // todo rename x
+    std::unique_ptr<Surface> eval(double val);
 
 private:
     Eqptr kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb;
@@ -31,10 +31,10 @@ typedef std::shared_ptr<SurfaceGenerator> Sgptr;
 class LightGenerator {
 public:
 
-    LightGenerator(const Eqptr &red, const Eqptr &green, const Eqptr &blue, const Eqptr &x, const Eqptr &y,
-                   const Eqptr &z);
+    LightGenerator(Eqptr red, Eqptr green, Eqptr blue, Eqptr x, Eqptr y,
+                   Eqptr z);
 
-    std::unique_ptr<Light> eval(double frames); // todo rename
+    std::unique_ptr<Light> eval(double val);
 
 private:
     Eqptr red, green, blue, x, y, z;
@@ -45,9 +45,9 @@ typedef std::shared_ptr<LightGenerator> Lgptr;
 struct DRAW {
     explicit DRAW(Sgptr sgptr);
 
-    std::unique_ptr<Surface> surface(unsigned int frame);
+    std::unique_ptr<Surface> surface(unsigned int frame_no);
 
-    virtual std::unique_ptr<FL> matrix(unsigned int frame) = 0;
+    virtual std::unique_ptr<FaceList> matrix(unsigned int frame) = 0;
 
 protected:
     Sgptr sgptr;
@@ -56,15 +56,15 @@ protected:
 typedef std::shared_ptr<DRAW> DRAW_PTR;
 
 struct MODIFY_CS {
-    virtual std::unique_ptr<M_Matrix> matrix(unsigned int frame) = 0;
+    virtual std::unique_ptr<ModifierMatrix> matrix(unsigned int frame) = 0;
 };
 
 typedef std::shared_ptr<MODIFY_CS> MODIFY_CS_PTR;
 
 struct DRAW_SPHERE : DRAW {
-    DRAW_SPHERE(const Sgptr &sgptr, const Eqptr &cx, const Eqptr &cy, const Eqptr &cz, const Eqptr &radius);
+    DRAW_SPHERE(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr radius);
 
-    std::unique_ptr<FL> matrix(unsigned int frame) override;
+    std::unique_ptr<FaceList> matrix(unsigned int frame_no) override;
 
 private:
     Eqptr cx, cy, cz, radius;
@@ -72,50 +72,50 @@ private:
 
 
 struct DRAW_TORUS : DRAW {
-    DRAW_TORUS(const Sgptr &sgptr, const Eqptr &cx, const Eqptr &cy, const Eqptr &cz, const Eqptr &innerR,
-               const Eqptr &outerR);
+    DRAW_TORUS(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr inner_r,
+               Eqptr outer_r);
 
-    std::unique_ptr<FL> matrix(unsigned int frame) override;
+    std::unique_ptr<FaceList> matrix(unsigned int frame_no) override;
 
 private:
     Eqptr cx, cy, cz, inner_r, outer_r;
 };
 
 struct DRAW_BOX : DRAW {
-    DRAW_BOX(const Sgptr &sgptr, const Eqptr &ulcx, const Eqptr &ulcy, const Eqptr &ulcz, const Eqptr &width,
-             const Eqptr &height, const Eqptr &depth);
+    DRAW_BOX(Sgptr sgptr, Eqptr ulcx, Eqptr ulcy, Eqptr ulcz, Eqptr width,
+             Eqptr height, Eqptr depth);
 
-    std::unique_ptr<FL> matrix(unsigned int frame) override;
+    std::unique_ptr<FaceList> matrix(unsigned int frame_no) override;
 
 private:
     Eqptr ulcx, ulcy, ulcz, width, height, depth;
 };
 
 struct MOVE : MODIFY_CS {
-    MOVE(const Eqptr &x, const Eqptr &y, const Eqptr &z);
+    MOVE(Eqptr x, Eqptr y, Eqptr z);
 
-    std::unique_ptr<M_Matrix> matrix(unsigned int frame) override;
+    std::unique_ptr<ModifierMatrix> matrix(unsigned int frame_no) override;
 
 private:
     Eqptr x, y, z;
 };
 
 struct SCALE : MODIFY_CS {
-    SCALE(const Eqptr &x, const Eqptr &y, const Eqptr &z);
+    SCALE(Eqptr x, Eqptr y, Eqptr z);
 
-    std::unique_ptr<M_Matrix> matrix(unsigned int frame) override;
+    std::unique_ptr<ModifierMatrix> matrix(unsigned int frame_no) override;
 
 private:
     Eqptr x, y, z;
 };
 
 struct ROTATE : MODIFY_CS {
-    ROTATE(RM::Axis axis, const Eqptr &degrees);
+    ROTATE(RotationMatrix::Axis axis, Eqptr degrees);
 
-    std::unique_ptr<M_Matrix> matrix(unsigned int frame) override;
+    std::unique_ptr<ModifierMatrix> matrix(unsigned int frame_no) override;
 
 private:
-    RM::Axis axis;
+    RotationMatrix::Axis axis;
     Eqptr degrees;
 };
 
@@ -126,14 +126,6 @@ struct PUSH {
 struct POP {
     POP();
 };
-
-struct DISPLAY {
-    DISPLAY();
-};
-
-
-typedef std::variant<
-        PUSH, POP, DISPLAY, DRAW_PTR, MODIFY_CS_PTR> Command;
 
 struct WORLD {
 
@@ -151,7 +143,7 @@ struct WORLD {
 
     template<int width, int height>
     void exec_world(Frame<width, height> &frame, unsigned int frame_no,
-                    const std::vector<Lgptr> &light_generators, M_Matrix base_cs = M_Matrix()) {
+                    const std::vector<Lgptr> &light_generators, ModifierMatrix base_cs = ModifierMatrix()) {
         if (frame_no >= start_frame && frame_no <= end_frame) {
             std::vector<Light> lights;
             std::transform(light_generators.begin(), light_generators.end(), std::back_inserter(lights),
@@ -174,4 +166,4 @@ struct WORLD {
     }
 };
 
-#endif //CMD_H
+#endif //COMMAND_H

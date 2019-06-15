@@ -1,19 +1,17 @@
-#ifndef SYMT_H
-#define SYMT_H
+#ifndef COMPILER_H
+#define COMPILER_H
 
 #include <vector>
 #include <string>
 #include <map>
-#include "cmd.h"
-#include "sym.h"
+#include "command.h"
+#include "light.h"
 
 
-class Parser { // todo rename
+class MDL_Compiler {
 public:
 
-    Parser();
-
-    void add_command(Command &&command);
+    explicit MDL_Compiler(const std::string &filename);
 
     Sgptr add_surface(const std::string &name, Sgptr sgprt);
 
@@ -23,9 +21,16 @@ public:
 
     const Eqptr find_eq(const std::string &name);
 
-    void lex(std::istream &is);
+    void pre_process(std::istream &is);
 
-    void parse();
+    void execute();
+
+    class MDL_ParsingException : public std::runtime_error {
+    public:
+        explicit MDL_ParsingException(const std::string &arg);
+    };
+
+    static void throw_error(const std::string &message, unsigned int line_no);
 
 private:
 
@@ -35,11 +40,10 @@ private:
     std::string basename;
     unsigned int frames;
     bool static_image;
-    std::vector<Command> commands;
     std::map<std::string, Eqptr> equations;
     std::map<std::string, Sgptr> surfaces;
     std::vector<Lgptr> lights;
 };
 
 
-#endif //SYMT_H
+#endif //COMPILER_H

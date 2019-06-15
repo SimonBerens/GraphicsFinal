@@ -10,43 +10,43 @@ exec.zzz: main.o symt.o cmd.o sym.o equation_parser.o P.o V.o color.o p_matrix.o
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
 
-symt.o: parsing/symt.cpp parsing/symt.h
+symt.o: parsing/compiler.cpp parsing/compiler.h
 	$(CC) $(CFLAGS) -c parsing/symt.cpp
 
-cmd.o: parsing/cmd.h parsing/cmd.cpp
+cmd.o: parsing/command.h parsing/command.cpp
 	$(CC) $(CFLAGS) -c parsing/cmd.cpp
 	
-sym.o: parsing/sym.h parsing/sym.cpp
+sym.o: parsing/light.h parsing/light.cpp
 	$(CC) $(CFLAGS) -c parsing/sym.cpp
 
-equation_parser.o: equation_parser.cpp equation_parser.h
+equation_parser.o: parsing/equation.cpp parsing/equation.h
 	$(CC) $(CFLAGS) -c equation_parser.cpp
 
-P.o: scalables/P.cpp scalables/P.h scalables/scalable.h
+P.o: scalables/point.cpp scalables/point.h scalables/scalable.h
 	$(CC) $(CFLAGS) -c scalables/P.cpp
 
-V.o: scalables/V.cpp scalables/V.h scalables/scalable.h
+V.o: scalables/vec.cpp scalables/vec.h scalables/scalable.h
 	$(CC) $(CFLAGS) -c scalables/V.cpp
 
 color.o: scalables/color.cpp scalables/color.h scalables/scalable.h
 	$(CC) $(CFLAGS) -c scalables/color.cpp
 
-p_matrix.o: matrices/p_matrix.cpp matrices/p_matrix.h
+p_matrix.o: matrices/point_matrix.cpp matrices/point_matrix.h
 	$(CC) $(CFLAGS) -c matrices/p_matrix.cpp
 
-m_matri.o: matrices/m_matri.cpp matrices/m_matri.h
+m_matri.o: matrices/modifier_matrix.cpp matrices/modifier_matrix.h
 	$(CC) $(CFLAGS) -c matrices/m_matri.cpp
 
-face.o: matrices/face.cpp matrices/face.h
+face.o: matrices/face_list.cpp matrices/face_list.h
 	$(CC) $(CFLAGS) -c matrices/face.cpp
 
-rm.o: matrices/rm.cpp matrices/rm.h
+rm.o: matrices/rotation_matrix.cpp matrices/rotation_matrix.h
 	$(CC) $(CFLAGS) -c matrices/rm.cpp
 
-sm.o: matrices/sm.cpp matrices/sm.h
+sm.o: matrices/scale_matrix.cpp matrices/scale_matrix.h
 	$(CC) $(CFLAGS) -c matrices/sm.cpp
 
-tm.o: matrices/tm.cpp matrices/tm.h
+tm.o: matrices/translation_matrix.cpp matrices/translation_matrix.h
 	$(CC) $(CFLAGS) -c matrices/tm.cpp
 
 clean:

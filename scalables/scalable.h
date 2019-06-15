@@ -2,7 +2,6 @@
 #define SCALABLE_H
 
 #include <array>
-#include <functional>
 #include <ostream>
 
 template<typename T, int size>

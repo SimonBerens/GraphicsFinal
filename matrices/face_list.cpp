@@ -1,15 +1,15 @@
 #include <cmath>
-#include "face.h"
+#include "face_list.h"
 
 using namespace std;
 
-void FL::add_face(P p0, P p1, P p2) {
+void FaceList::add_face(Point p0, Point p1, Point p2) {
     add_point(p0);
     add_point(p1);
     add_point(p2);
 }
 
-void FL::add_box(const P &upper_left_corner, double width, double height, double depth) {
+void FaceList::add_box(const Point &upper_left_corner, double width, double height, double depth) {
     double x = upper_left_corner.x(), y = upper_left_corner.y(), z = upper_left_corner.z();
     double x1 = x + width, y1 = y - height, z1 = z - depth;
     // front face
@@ -32,9 +32,9 @@ void FL::add_box(const P &upper_left_corner, double width, double height, double
     add_face({x, y1, z1}, {x, y, z1}, {x1, y, z1});
 }
 
-void FL::add_sphere(const P &center, double r) {
+void FaceList::add_sphere(const Point &center, double r) {
     const double cx = center.x(), cy = center.y(), cz = center.z();
-    FL temp;
+    FaceList temp;
     int psteps = 20, tsteps = 20;
     for (int pstep = 0; pstep <= psteps; pstep++) {
         double phi = 2 * M_PI / psteps * pstep;
@@ -52,9 +52,9 @@ void FL::add_sphere(const P &center, double r) {
     }
 }
 
-void FL::add_torus(const P &center, double r0, double r1) {
+void FaceList::add_torus(const Point &center, double r0, double r1) {
     double cx = center.x(), cy = center.y(), cz = center.z();
-    FL temp;
+    FaceList temp;
     int psteps = 100, tsteps = 50;
     for (int pstep = 0; pstep <= psteps; pstep++) {
         double phi = 2 * M_PI / psteps * pstep;
@@ -74,7 +74,7 @@ void FL::add_torus(const P &center, double r0, double r1) {
     }
 }
 
-FL &FL::mult(const M_Matrix &modifier) {
-    P_Matrix::mult(modifier);
+FaceList &FaceList::mult(const ModifierMatrix &modifier) {
+    PointMatrix::mult(modifier);
     return *this;
 }

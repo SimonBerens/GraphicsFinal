@@ -1,5 +1,4 @@
 #include <utility>
-
 #include <string>
 #include <stack>
 #include <vector>
@@ -8,23 +7,20 @@
 #include <sstream>
 #include <cmath>
 #include <numeric>
-#include "equation_parser.h"
+#include "equation.h"
 
-
-// todo rename files
 using namespace std;
 
-Eq::Operation::Operation() : op() {
+Equation::Operation::Operation() : op() {
     params.reserve(5);
 }
 
-void Eq::Operation::param_num_check(int num_required, const std::string &op_attempted) {
+void Equation::Operation::param_num_check(int num_required, const std::string &op_attempted) {
     if (params.size() != num_required)
-        throw runtime_error(
-                op_attempted + " undefined for more or less than " + to_string(num_required) + " parameters");
+        throw_error(op_attempted + " undefined for more or less than " + to_string(num_required) + " parameters");
 }
 
-double Eq::Operation::eval() {
+double Equation::Operation::eval() {
     if (op == "+") {
         return accumulate(params.begin(), params.end(), 0.);
     } else if (op == "-") {
@@ -57,13 +53,12 @@ double Eq::Operation::eval() {
         param_num_check(1, "arctan");
         return atan(params[0]);
     } else {
-        throw runtime_error(string("unknown operation [") + op + "]");
+        throw_error("unknown operation [" + op + "]");
     }
+    return 0;
 }
 
-//evaluates a string
-
-double Eq::eval(double x) {
+double Equation::eval(double x) {
     if (s == "x")
         return x;
     try {
@@ -79,11 +74,11 @@ double Eq::eval(double x) {
             paren_balance--;
     }
     if (paren_balance != 0)
-        throw runtime_error("Mismatched parentheses in equation [" + s + "]");
+        throw_error("Mismatched parentheses");
     ss = stringstream(s);
 
     stack<Operation> ops;
-    ops.emplace(); // temp to store value
+    ops.emplace();
     while (ss >> token) {
         if (token == "(") {
             ops.emplace();
@@ -107,11 +102,18 @@ double Eq::eval(double x) {
             try {
                 ops.top().params.push_back(stod(token));
             } catch (invalid_argument &e) {
-                throw runtime_error("Unknown token [" + token + "] in equation [" + s + "]");
+                throw_error("Unknown token [" + token + "]");
             }
         }
     }
     return ops.top().params[0];
 }
 
-Eq::Eq(string s) : s(std::move(s)) {}
+Equation::Equation(string s) : s(std::move(s)) {}
+
+void Equation::throw_error(const std::string &message) {
+    throw EquationParsingException(message + " in equation [" + "]");
+}
+
+Equation::EquationParsingException::EquationParsingException(const string &message) :
+        runtime_error("Equation Parsing Exception: " + message) {}

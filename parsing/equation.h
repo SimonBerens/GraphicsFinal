@@ -1,15 +1,21 @@
-#ifndef EQUATION_PARSER_H
-#define EQUATION_PARSER_H
+#ifndef EQUATION_H
+#define EQUATION_H
 
 #include <vector>
 #include <string>
 
-class Eq {
+class Equation {
 public:
     double eval(double x);
 
-    explicit Eq(std::string s);
+    explicit Equation(std::string s);
 
+    class EquationParsingException : public std::runtime_error {
+    public:
+        explicit EquationParsingException(const std::string &message);
+    };
+
+    static void throw_error(const std::string &message);
 private:
     struct Operation {
 
@@ -27,4 +33,4 @@ private:
     std::string s;
 };
 
-#endif //EQUATION_PARSER_H
+#endif //EQUATION_H

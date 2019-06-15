@@ -1,9 +1,9 @@
 #include <cmath>
-#include "rm.h"
+#include "rotation_matrix.h"
 
-RM::RM(Axis axis, double degrees) {
+RotationMatrix::RotationMatrix(Axis axis, double degrees) {
     double rad = degrees * M_PI / 180;
-    RM &m = *this;
+    RotationMatrix &m = *this;
     switch (axis) {
         case X:
             m(1, 1) = cos(rad);

@@ -3,50 +3,49 @@
 #include <stack>
 #include <sstream>
 #include <iomanip>
-#include "symt.h"
+#include <cstring>
+#include "compiler.h"
 #include "../draw.h"
-#include "../matrices/tm.h"
-#include "../matrices/sm.h"
-#include "cmd.h"
+#include "../matrices/translation_matrix.h"
+#include "../matrices/scale_matrix.h"
+#include "command.h"
 
 using namespace std;
 
-Parser::Parser() : static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)) {
-    commands.reserve(128);
+MDL_Compiler::MDL_Compiler(const std::string &filename)
+        : static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)) {
+    ifstream file(filename);
+    pre_process(file);
+    execute();
 }
 
-Sgptr Parser::add_surface(const std::string &name, Sgptr sgprt) { // todo rename add to h
+Sgptr MDL_Compiler::add_surface(const std::string &name, Sgptr sgprt) {
     return surfaces.insert_or_assign(name, sgprt).first->second;
 }
 
-const Sgptr Parser::find_surface(const std::string &name) const {
+const Sgptr MDL_Compiler::find_surface(const std::string &name) const {
     return surfaces.at(name);
 }
 
 
-Eqptr Parser::add_eq(const std::string &name, Eqptr eqptr) {
+Eqptr MDL_Compiler::add_eq(const std::string &name, Eqptr eqptr) {
     return equations.insert_or_assign(name, eqptr).first->second;
 }
 
-const Eqptr Parser::find_eq(const std::string &name) {
+const Eqptr MDL_Compiler::find_eq(const std::string &name) {
     try {
         stod(name);
     } catch (invalid_argument &e) {
         return equations.at(name);
     }
-    return add_eq(name, std::make_shared<Eq>(name));
+    return add_eq(name, std::make_shared<Equation>(name));
 }
 
-
-void Parser::add_command(Command &&command) {
-    commands.push_back(command);
-}
-
-void Parser::lex(std::istream &is) { // todo rename
+void MDL_Compiler::pre_process(std::istream &is) {
     stack<WORLD::WORLD_PTR> worlds;
-    worlds.push(base); // todo constructor?
+    worlds.push(base);
     string line;
-    int line_no = 0;
+    int line_no = 1;
     while (getline(is, line)) {
         stringstream ss(line);
         string command;
@@ -64,12 +63,12 @@ void Parser::lex(std::istream &is) { // todo rename
             string name, eq;
             ss >> name;
             getline(ss, eq);
-            add_eq(name, std::make_shared<Eq>(eq)); // todo error check mode
+            add_eq(name, std::make_shared<Equation>(eq));
         } else if (command == "light") {
             string r, g, b, x, y, z;
             ss >> r >> g >> b >> x >> y >> z;
-            lights.push_back(make_shared<LightGenerator>(find_eq(r), find_eq(g), find_eq(b), find_eq(x), find_eq(y),
-                                                         find_eq(z)));
+            lights.push_back(make_shared<LightGenerator>(find_eq(r), find_eq(g), find_eq(b),
+                                                         find_eq(x), find_eq(y), find_eq(z)));
         } else if (command == "sphere") {
             string surface_name, x, y, z, radius; // todo optional surface name
             ss >> surface_name >> x >> y >> z >> radius;
@@ -77,7 +76,7 @@ void Parser::lex(std::istream &is) { // todo rename
                     find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(radius)));
         } else if (command == "torus") {
             string surface_name, x, y, z, inner_r, outer_r; // todo optional surface name
-            ss >> surface_name >> x >> y >> z >> inner_r >> outer_r; // todo optional surface name
+            ss >> surface_name >> x >> y >> z >> inner_r >> outer_r;
             worlds.top()->commands.emplace_back(in_place_index<0>, make_shared<DRAW_TORUS>(
                     find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(inner_r), find_eq(outer_r)
             ));
@@ -100,9 +99,11 @@ void Parser::lex(std::istream &is) { // todo rename
         } else if (command == "rotate") {
             string axis, degrees;
             ss >> axis >> degrees;
-            worlds.top()->commands.emplace_back(in_place_index<1>, make_shared<ROTATE>(
-                    axis == "X" ? RM::X : axis == "Y" ? RM::Y : RM::Z, // todo error check this
-                    find_eq(degrees))); // todo lowercase
+            RotationMatrix::Axis typed_axis = axis == "x" ? RotationMatrix::X : axis == "y" ? RotationMatrix::Y : axis == "z" ? RotationMatrix::Z :
+                                                                              (throw_error(
+                                                                                      "Invalid axis [" + axis + "]",
+                                                                                      line_no), RotationMatrix::Z);
+            worlds.top()->commands.emplace_back(in_place_index<1>, make_shared<ROTATE>(typed_axis, find_eq(degrees)));
         } else if (command == "push") {
             double sf, ef;
             ss >> sf >> ef;
@@ -111,26 +112,25 @@ void Parser::lex(std::istream &is) { // todo rename
             worlds.push(world_ptr);
         } else if (command == "pop") {
             worlds.pop();
-        } else if (command == "display") {
-            // todo remove?
-            add_command(Command{in_place_index<2>, DISPLAY{}});
         } else if (command == "basename") {
             ss >> basename;
         } else if (command == "frames") {
             ss >> frames;
             base->end_frame = frames;
         }
-        // todo check empty line
+        string test;
+        if (ss >> test)
+            throw_error("Extraneous characters for command [" + command + "]", line_no);
         line_no++;
     }
 }
 
-void Parser::check_sys_call(int result) {
+void MDL_Compiler::check_sys_call(int result) {
     if (result != 0)
-        throw runtime_error("system call failed");
+        throw runtime_error(string("System call failed, strerror: ") + strerror(errno));
 }
 
-void Parser::parse() { // todo rename
+void MDL_Compiler::execute() {
     if (static_image) {
         Frame<500, 500> frame;
         base->exec_world(frame, 0, lights);
@@ -151,3 +151,10 @@ void Parser::parse() { // todo rename
         check_sys_call(system("rm -rf ./build"));
     }
 }
+
+void MDL_Compiler::throw_error(const std::string &message, unsigned int line_no) {
+    throw MDL_ParsingException(message + " on line " + to_string(line_no));
+}
+
+MDL_Compiler::MDL_ParsingException::MDL_ParsingException(const string &arg) :
+        runtime_error("MDL_ParsingException: " + arg) {}
