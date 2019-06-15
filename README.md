@@ -54,10 +54,15 @@ This is the case for each individual object, regardless if multiple utilize the 
 This version of MDL does not support line, save, or display. Save will be automatically performed if frames is not set
 (to basename.png)
 
-Rotate now takes radians instead of degrees for better integration with equations
+Rotate now takes radians instead of degrees for better integration with equations.
 ##### Other:
 This entire program is written in modern c++17! No raw pointers or arrays, so copy constructors, move constructors, 
 and destructors are all trivial (compiler generated), so memory management is effectively automatic!
 
 ##### Things that Make Me Sad:
-Due to parsing being hard without bison and our obsession with clean code, there is no option for default
+* Due to parsing being hard without bison and our obsession with clean code, there is no option for omitting constants, 
+rather we have built in `constants default 1 1 1 1 1 1 1 1 1` for you to use
+
+* If you don't provide enough arguments to commands, things will probably not go well.
+
+* Due to lack of regex matching you can use anything that doesn't parse as a double as an identifier
