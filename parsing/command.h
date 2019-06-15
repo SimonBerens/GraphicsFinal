@@ -152,7 +152,7 @@ struct WORLD {
     unsigned int end_frame;
 
     template<int width, int height>
-    void exec_world(Frame<width, height> &frame, unsigned int frame_no,
+    void exec_world(Frame<width, height> &frame, unsigned int frame_no, const Agptr& agptr,
                     const std::vector<Lgptr> &light_generators, ModifierMatrix base_cs = ModifierMatrix()) {
         if (frame_no >= start_frame && frame_no <= end_frame) {
             std::vector<Light> lights;
@@ -163,13 +163,13 @@ struct WORLD {
                 if (std::holds_alternative<DRAW_PTR>(cmd)) {
                     auto dptr = std::get<DRAW_PTR>(cmd);
                     frame.draw_faces(dptr->matrix(relative_frame_no)->mult(base_cs), *dptr->surface(relative_frame_no),
-                                     lights);
+                                     *agptr->eval(relative_frame_no), lights);
                 } else if (std::holds_alternative<MODIFY_CS_PTR>(cmd)) {
                     auto m = std::get<MODIFY_CS_PTR>(cmd)->matrix(relative_frame_no);
                     m->mult(base_cs);
                     base_cs = *m;
                 } else if (std::holds_alternative<WORLD_PTR>(cmd)) {
-                    std::get<WORLD_PTR>(cmd)->exec_world(frame, frame_no, light_generators, base_cs);
+                    std::get<WORLD_PTR>(cmd)->exec_world(frame, frame_no, agptr, light_generators, base_cs);
                 }
             }
         }

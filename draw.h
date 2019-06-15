@@ -141,36 +141,35 @@ public:
         return cross(a, b);
     }
 
-    void draw_faces(const FaceList &fl, const Surface &surface, const std::vector<Light> &lights) {
+    void draw_faces(const FaceList &fl, const Surface &surface, const Color & ambient_light, const std::vector<Light> &lights) {
         for (int i = 0; i < fl.cols(); i += 3) {
             Vec3D normal = surface_normal(fl[i], fl[i + 1], fl[i + 2]);
             Vec3D view(0, 0, 1);
             if (dot(view, normal) > 0)
-                fill_triangle(fl[i], fl[i + 1], fl[i + 2], surface, lights);
+                fill_triangle(fl[i], fl[i + 1], fl[i + 2], surface, ambient_light, lights);
         }
     }
 
     static Color
     calculate_color(const Point &p0, const Point &p1, const Point &p2, const Surface &surface,
-                    const std::vector<Light> &lights) {
+                    const Color &ambient_light, const std::vector<Light> &lights) {
         // not yet implemented
-        static Color ambient_light(50, 50, 50);
         Vec3D view{0, 0, 1};
         // calculation
         int exp = 3;
         Vec3D normal = surface_normal(p0, p1, p2);
-
         Color ret;
+        Color ambient = surface.ambient * ambient_light;
         for (auto &light : lights) {
             Vec3D l = Point(light.location - p0);
-            Color ambient = surface.ambient * ambient_light;
             double lnd = dot(l.normalized(), normal.normalized());
             Color diffuse(lnd * surface.diffuse * light.color);
             Color specular(
                     pow(dot(view, 2 * lnd * normal.normalized() - l.normalized()), exp) * surface.specular *
                     light.color);
-            ret = ret + ambient + diffuse.bound() + specular.bound();
+            ret = ret + diffuse.bound() + specular.bound();
         }
+        ret = ret + ambient.bound();
         return ret.bound();
     }
 
@@ -192,10 +191,9 @@ public:
     }
 
 
-    void
-    fill_triangle(const Point &p0, const Point &p1, const Point &p2, const Surface &surface,
-                  const std::vector<Light> &lights) {
-        Color c = calculate_color(p0, p1, p2, surface, lights);
+    void fill_triangle(const Point &p0, const Point &p1, const Point &p2, const Surface &surface,
+                       const Color &ambient_light, const std::vector<Light> &lights) {
+        Color c = calculate_color(p0, p1, p2, surface, ambient_light, lights);
 
         auto ycomp = [](const Point &p0, const Point &p1) -> bool {
             return p0.y() == p1.y() ? p0.x() < p1.x() : p0.y() < p1.y();

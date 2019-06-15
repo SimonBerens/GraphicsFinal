@@ -13,7 +13,9 @@
 using namespace std;
 
 MDL_Compiler::MDL_Compiler(const std::string &filename) :
-        static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)) {
+        static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)),
+        ambient(make_shared<AmbientGenerator>(make_shared<Equation>("255"),
+                                              make_shared<Equation>("255"), make_shared<Equation>("255"))) {
     ifstream file(filename);
     try {
         pre_process(file);
@@ -121,9 +123,10 @@ void MDL_Compiler::pre_process(std::istream &is) {
             string axis, degrees;
             ss >> axis >> degrees;
             RotationMatrix::Axis typed_axis =
-                    axis == "x" ? RotationMatrix::X : axis == "y" ? RotationMatrix::Y : axis == "z" ? RotationMatrix::Z
-                                                                                                    : (throw_error(
-                                    "Invalid axis [" + axis + "]", line_no), RotationMatrix::Z);
+                    axis == "x" ? RotationMatrix::X :
+                    axis == "y" ? RotationMatrix::Y :
+                    axis == "z" ? RotationMatrix::Z : (throw_error("Invalid axis [" + axis + "]", line_no),
+                            RotationMatrix::Z);
             worlds.top()->commands.emplace_back(in_place_index<1>, make_shared<ROTATE>(typed_axis, find_eq(degrees)));
         } else if (command == "push") {
             double sf, ef;
@@ -158,7 +161,7 @@ void MDL_Compiler::check_sys_call(int result) {
 void MDL_Compiler::execute() {
     if (static_image) {
         Frame<500, 500> frame;
-        base->exec_world(frame, 0, lights);
+        base->exec_world(frame, 0, ambient, lights);
         frame.save(basename + ".png");
     } else {
         check_sys_call(system("mkdir -p build"));
@@ -166,7 +169,7 @@ void MDL_Compiler::execute() {
         for (int f = 0; f < frames; ++f) {
             cout << "Frame: " << f << endl;
             Frame<500, 500> frame;
-            base->exec_world(frame, f, lights);
+            base->exec_world(frame, f, ambient, lights);
             stringstream fname;
             fname << setfill('0') << setw(3) << f;
             frame.save(basename + fname.str() + ".png");
