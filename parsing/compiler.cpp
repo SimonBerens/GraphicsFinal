@@ -76,7 +76,11 @@ void MDL_Compiler::pre_process(std::istream &is) {
             string name, eq;
             ss >> name;
             getline(ss, eq);
-            add_eq(name, std::make_shared<Equation>(eq));
+            auto linkable = Equation::linkable(eq);
+            if (linkable.first)
+                add_eq(name, std::make_shared<Equation>(eq, find_eq(linkable.second), linkable.second));
+            else
+                add_eq(name, std::make_shared<Equation>(eq));
         } else if (command == "ambient") {
             string r, g, b;
             ss >> r >> g >> b;

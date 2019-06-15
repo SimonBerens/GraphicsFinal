@@ -4,6 +4,7 @@
 ### Features
 * Knobs are determined by equations
 * Use of knobs as variables
+* Relative equation parsing
 * Light command
 * Ambient command
 * Specification of object lifetime
@@ -36,6 +37,7 @@ This also means that you can no longer write `move 500 500 500 <knob>`
 
 Note: The declaration for the knob (and constant) must precede any of its uses.
 
+You can also use equations inside another, as long as the inside equation has been declared beforehand.
 ##### Push:
 The new syntax for push is `push <int start_frame> <int end_frame>`. This will draw all objects draw on or above this 
 stack level. Inner objects may have a more specific range defined, but if their `start_frame` and `end_frame` are 
@@ -61,8 +63,8 @@ and destructors are all trivial (compiler generated), so memory management is ef
 
 ##### Things that Make Me Sad:
 * Due to parsing being hard without bison and our obsession with clean code, there is no option for omitting constants, 
-rather we have built in `constants default 1 1 1 1 1 1 1 1 1` for you to use
+rather we have built in `constants default 1 1 1 1 1 1 1 1 1` for you to use.
 
 * If you don't provide enough arguments to commands, things will probably not go well.
 
-* Due to lack of regex matching you can use anything that doesn't parse as a double as an identifier
+* Due to lack of regex matching you can use anything that doesn't parse as a double as an identifier.

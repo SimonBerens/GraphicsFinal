@@ -59,6 +59,7 @@ double Equation::Operation::eval() {
 }
 
 double Equation::eval(double x) {
+    // todo
     if (s == "x")
         return x;
     try {
@@ -94,6 +95,8 @@ double Equation::eval(double x) {
             ops.top().op = token;
         else if (token == "x")
             ops.top().params.push_back(x);
+        else if (linked && token == link_name)
+            ops.top().params.push_back(link->eval(x));
         else if (token == "e")
             ops.top().params.push_back(M_E);
         else if (token == "pi")
@@ -109,10 +112,25 @@ double Equation::eval(double x) {
     return ops.top().params[0];
 }
 
-Equation::Equation(string s) : s(std::move(s)) {}
+Equation::Equation(std::string s) : s(std::move(s)), linked(false), link_name("") {}
+
+Equation::Equation(std::string s, std::shared_ptr<Equation> link, std::string link_name)
+        : s(std::move(s)), linked(true), link(move(link)), link_name(move(link_name)) {}
 
 void Equation::throw_error(const std::string &message) {
     throw EquationParsingException(message + " in equation [" + "]");
+}
+
+pair<bool, string> Equation::linkable(const std::string &s) {
+    stringstream ss(s);
+    string token;
+    while (ss >> token)
+        if (isalpha(token[0]) && all_of(token.begin(),token.end(), ::isalnum) &&
+        token != "sin" && token != "cos" && token != "tan" &&
+        token != "arcsin" && token != "arcsin" && token != "arctan" &&
+        token != "x" && token != "pi" && token != "e")
+            return {true, token};
+    return {false, ""};
 }
 
 Equation::EquationParsingException::EquationParsingException(const string &message) :

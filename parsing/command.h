@@ -12,7 +12,6 @@
 #include "../matrices/scale_matrix.h"
 #include "../draw.h"
 
-typedef std::shared_ptr<Equation> Eqptr;
 
 class SurfaceGenerator {
 public:
