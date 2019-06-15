@@ -49,6 +49,11 @@ const Eqptr MDL_Compiler::find_eq(const std::string &name) {
 }
 
 void MDL_Compiler::pre_process(std::istream &is) {
+    add_surface("default", std::make_shared<SurfaceGenerator>(
+            find_eq("1"), find_eq("1"), find_eq("1"),
+            find_eq("1"), find_eq("1"), find_eq("1"),
+            find_eq("1"), find_eq("1"), find_eq("1"))
+    );
     stack<WORLD::WORLD_PTR> worlds;
     worlds.push(base);
     string line;

@@ -1,23 +1,9 @@
-frames 140
+frames 2
 constants brass 0.329412 0.7140392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.1407843
 basename simple_20
-vary cx ( * ( sin ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ( cos ( * 2 pi ( / x 140 ) ) ) 175 )
-vary cy ( * ( sin ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ( sin ( * 2 pi ( / x 140 ) ) ) 175 )
-vary cz 0
-vary lx ( + 250 ( * ( sin ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ( cos ( * 2 pi ( / x 140 ) ) ) 2 ) )
-vary ly ( + 250 ( * ( sin ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ( sin ( * 2 pi ( / x 140 ) ) ) 2 ) )
-vary spinny ( arctan ( / ( + ( * ( * 5 ( cos ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ( sin ( * 2 pi ( / x 140 ) ) ) ) ) ( * ( cos ( * 2 pi ( / x 140 ) ) ) ( sin ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ) ) ( - ( * ( * 5 ( cos ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ( cos ( * 2 pi ( / x 140 ) ) ) ) ) ( * ( sin ( * 2 pi ( / x 140 ) ) ) ( sin ( * 5 ( * 2 pi ( / x 140 ) ) ) ) ) ) ) )
-light 255 0 255 lx ly 30
-light 255 255 0 250 200 0
-light 255 0 255	300 200	0
-light 0 255 255 250 300	0
-vary rot ( / x 50 )
-vary zscaler ( + 1 ( * 2 ( / x 140 ) ) )
 
-push 0 140
+push 0 2
 move 250 250 0
-move cx cy cz
-scale zscaler zscaler zscaler
-rotate z spinny
-box brass -20 20 0 20 -20 -20
+sphere brass 0 0 0 50
+box brass -100 300 100 100 -300 -100
 pop
