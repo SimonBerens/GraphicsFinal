@@ -74,4 +74,4 @@ rather we have built in `constants default 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5` 
 
 * If you don't provide enough arguments to commands, things will probably not go well.
 
-* Due to lack of regex matching you can use anything that doesn't parse as a double as an identifier.
+* If you want you can cause an infinite loop by making equations rely on eachother

@@ -3,24 +3,25 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 #include <string>
 
 class Equation {
 public:
     double eval(double x);
 
-    explicit Equation(std::string s);
+    Equation(std::string s);
 
-    Equation(std::string s, std::shared_ptr<Equation> link, std::string link_name);
+    Equation(std::string s, std::map<std::string, std::shared_ptr<Equation>> links);
 
-    static std::pair<bool, std::string> linkable(const std::string &s);
+    static std::vector<std::string> find_linkables(const std::string &s);
 
     class EquationParsingException : public std::runtime_error {
     public:
         explicit EquationParsingException(const std::string &message);
     };
 
-    static void throw_error(const std::string &message);
+    void throw_error(const std::string &message);
 
 private:
     struct Operation {
@@ -34,13 +35,18 @@ private:
         void param_num_check(int num_required, const std::string &op_attempted);
 
         double eval();
+
+        class OperationParsingException : public std::runtime_error {
+        public:
+            explicit OperationParsingException(const std::string &message);
+        };
+
+        static void throw_error(const std::string &message);
     };
 
     std::string s;
 
-    bool linked;
-    std::shared_ptr<Equation> link;
-    std::string link_name;
+    std::map<std::string, std::shared_ptr<Equation>> links;
 };
 
 typedef std::shared_ptr<Equation> Eqptr;

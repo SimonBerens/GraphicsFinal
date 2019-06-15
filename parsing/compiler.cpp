@@ -79,16 +79,16 @@ void MDL_Compiler::pre_process(std::istream &is) {
                     find_eq(kdr), find_eq(kdg), find_eq(kdb),
                     find_eq(ksr), find_eq(ksg), find_eq(ksb))
             );
-        } else if (command == "vary") {
+        } else if (command == "vary") { // todo check name
             static_image = false;
             string name, eq;
             ss >> name;
             getline(ss, eq);
-            auto linkable = Equation::linkable(eq);
-            if (linkable.first)
-                add_eq(name, std::make_shared<Equation>(eq, find_eq(linkable.second), linkable.second));
-            else
-                add_eq(name, std::make_shared<Equation>(eq));
+            vector<string> linkables = Equation::find_linkables(eq);
+            map<string, Eqptr> links;
+            for (auto & link_name: linkables)
+                links.insert_or_assign(link_name, find_eq(link_name));
+            add_eq(name, std::make_shared<Equation>(eq, links));
         } else if (command == "ambient") {
             string r, g, b;
             ss >> r >> g >> b;

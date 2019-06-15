@@ -1,4 +1,10 @@
 #include <utility>
+
+#include <utility>
+
+#include <utility>
+
+#include <utility>
 #include <string>
 #include <stack>
 #include <vector>
@@ -53,9 +59,13 @@ double Equation::Operation::eval() {
         param_num_check(1, "arctan");
         return atan(params[0]);
     } else {
-        throw_error("unknown operation [" + op + "]");
+        Equation::Operation::throw_error("unknown operation [" + op + "]");
     }
     return 0;
+}
+
+void Equation::Operation::throw_error(const std::string &message) {
+    throw OperationParsingException(message);
 }
 
 double Equation::eval(double x) {
@@ -79,58 +89,65 @@ double Equation::eval(double x) {
 
     stack<Operation> ops;
     ops.emplace();
-    while (ss >> token) {
-        if (token == "(") {
-            ops.emplace();
-            paren_balance++;
-        } else if (token == ")") {
-            double res = ops.top().eval();
-            ops.pop();
-            ops.top().params.push_back(res);
-            paren_balance--;
-        } else if (token == "+" || token == "-" || token == "*" || token == "/" ||
-                   token == "^" || token == "sin" || token == "cos" || token == "tan" ||
-                   token == "arcsin" || token == "arccos" || token == "arctan")
-            ops.top().op = token;
-        else if (token == "x")
-            ops.top().params.push_back(x);
-        else if (linked && token == link_name)
-            ops.top().params.push_back(link->eval(x));
-        else if (token == "e")
-            ops.top().params.push_back(M_E);
-        else if (token == "pi")
-            ops.top().params.push_back(M_PI);
-        else {
-            try {
-                ops.top().params.push_back(stod(token));
-            } catch (invalid_argument &e) {
-                throw_error("Unknown token [" + token + "]");
+    try {
+        while (ss >> token) {
+            if (token == "(") {
+                ops.emplace();
+            } else if (token == ")") {
+                double res = ops.top().eval();
+                ops.pop();
+                ops.top().params.push_back(res);
+            } else if (token == "+" || token == "-" || token == "*" || token == "/" ||
+                       token == "^" || token == "sin" || token == "cos" || token == "tan" ||
+                       token == "arcsin" || token == "arccos" || token == "arctan")
+                ops.top().op = token;
+            else if (token == "x")
+                ops.top().params.push_back(x);
+            else if (links.find(token) != links.end())
+                ops.top().params.push_back(links.find(token)->second->eval(x));
+            else if (token == "e")
+                ops.top().params.push_back(M_E);
+            else if (token == "pi")
+                ops.top().params.push_back(M_PI);
+            else {
+                try {
+                    ops.top().params.push_back(stod(token));
+                } catch (invalid_argument &e) {
+                    throw_error("Unknown token [" + token + "]");
+                }
             }
         }
+    } catch (Equation::Operation::OperationParsingException &e) {
+        Equation::Operation::throw_error(string(e.what()) + " in equation [" + s + "]");
     }
     return ops.top().params[0];
 }
 
-Equation::Equation(std::string s) : s(std::move(s)), linked(false), link_name("") {}
-
-Equation::Equation(std::string s, std::shared_ptr<Equation> link, std::string link_name)
-        : s(std::move(s)), linked(true), link(move(link)), link_name(move(link_name)) {}
-
 void Equation::throw_error(const std::string &message) {
-    throw EquationParsingException(message + " in equation [" + "]");
+    throw EquationParsingException(message + " in equation [" + s + "]");
 }
 
-pair<bool, string> Equation::linkable(const std::string &s) {
+vector<string> Equation::find_linkables(const std::string &s) {
     stringstream ss(s);
     string token;
+    vector<string> link_names;
     while (ss >> token)
-        if (isalpha(token[0]) && all_of(token.begin(),token.end(), ::isalnum) &&
-        token != "sin" && token != "cos" && token != "tan" &&
-        token != "arcsin" && token != "arcsin" && token != "arctan" &&
-        token != "x" && token != "pi" && token != "e")
-            return {true, token};
-    return {false, ""};
+        if (isalpha(token[0]) && all_of(token.begin(), token.end(), ::isalnum) &&
+            token != "sin" && token != "cos" && token != "tan" &&
+            token != "arcsin" && token != "arcsin" && token != "arctan" &&
+            token != "x" && token != "pi" && token != "e")
+            link_names.push_back(token);
+    return link_names;
 }
 
+Equation::Equation(string s, map<string, shared_ptr<Equation>> links) : s(std::move(s)), links(std::move(links)) {}
+
+Equation::Equation(string s) : s(std::move(s)) {}
+
 Equation::EquationParsingException::EquationParsingException(const string &message) :
-        runtime_error("Equation Parsing Exception: " + message) {}
+        runtime_error("EquationParsingException: " + message) {}
+
+Equation::Operation::OperationParsingException::OperationParsingException(const std::string &message) : runtime_error(
+        "OperationParsingException: " + message) {
+
+}
