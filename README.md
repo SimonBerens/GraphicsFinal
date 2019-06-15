@@ -60,5 +60,9 @@ This entire program is written in modern c++17! No raw pointers or arrays, so co
 and destructors are all trivial (compiler generated), so memory management is effectively automatic!
 
 ##### Things that Make Me Sad:
-Due to parsing being hard without bison and our obsession with clean code, there is no option for omitting constants, 
+* Due to parsing being hard without bison and our obsession with clean code, there is no option for omitting constants, 
 rather we have built in `constants default 1 1 1 1 1 1 1 1 1` for you to use
+
+* If you don't provide enough arguments to commands, things will probably not go well.
+
+* Due to lack of regex matching you can use anything that doesn't parse as a double as an identifier
