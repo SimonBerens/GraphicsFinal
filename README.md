@@ -28,8 +28,6 @@ ex: ( - ( ^ ( + 3 x ) 9 ) x )
 
 #### Absolute mode: value for knob equations is substituted relative to beginning of gif
 
-#### Replace push and pop with { and } respectively for clearer scripts
-
 ### new features
 
 #### Specify lifetime of objects 
