@@ -4,13 +4,13 @@
 #include <memory>
 #include <variant>
 #include "light.h"
+#include "surface.h"
 #include "../matrices/rotation_matrix.h"
 #include "equation.h"
 #include "../matrices/face_list.h"
 #include "../matrices/translation_matrix.h"
 #include "../matrices/scale_matrix.h"
 #include "../draw.h"
-#include "surface.h"
 
 typedef std::shared_ptr<Equation> Eqptr;
 
@@ -31,8 +31,7 @@ typedef std::shared_ptr<SurfaceGenerator> Sgptr;
 class LightGenerator {
 public:
 
-    LightGenerator(Eqptr red, Eqptr green, Eqptr blue, Eqptr x, Eqptr y,
-                   Eqptr z);
+    LightGenerator(Eqptr red, Eqptr green, Eqptr blue, Eqptr x, Eqptr y, Eqptr z);
 
     std::unique_ptr<Light> eval(double val);
 
@@ -41,6 +40,18 @@ private:
 };
 
 typedef std::shared_ptr<LightGenerator> Lgptr;
+
+class AmbientGenerator {
+public:
+    AmbientGenerator(Eqptr red, Eqptr green, Eqptr blue);
+
+    std::unique_ptr<Color> eval(double val);
+
+private:
+    Eqptr red, green, blue;
+};
+
+typedef std::shared_ptr<AmbientGenerator> Agptr;
 
 struct DRAW {
     explicit DRAW(Sgptr sgptr);

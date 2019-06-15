@@ -12,11 +12,21 @@
 
 using namespace std;
 
-MDL_Compiler::MDL_Compiler(const std::string &filename)
-        : static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)) {
+MDL_Compiler::MDL_Compiler(const std::string &filename) :
+        static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)) {
     ifstream file(filename);
-    pre_process(file);
-    execute();
+    try {
+        pre_process(file);
+        execute();
+    } catch (Equation::EquationParsingException &e) {
+        cout << e.what() << endl;
+    } catch (MDL_ParsingException &e) {
+        cout << e.what() << endl;
+    }
+//    catch (ios_base::failure &e) {
+//        cout << e.what() << endl << "Most likely could not convert string to numeric type" << endl;
+//    }
+
 }
 
 Sgptr MDL_Compiler::add_surface(const std::string &name, Sgptr sgprt) {
@@ -47,7 +57,9 @@ void MDL_Compiler::pre_process(std::istream &is) {
     string line;
     int line_no = 1;
     while (getline(is, line)) {
+        transform(line.begin(), line.end(), line.begin(), ::tolower);
         stringstream ss(line);
+//        ss.exceptions(ios::failbit);
         string command;
         ss >> command;
         if (command == "constants") {
@@ -64,6 +76,10 @@ void MDL_Compiler::pre_process(std::istream &is) {
             ss >> name;
             getline(ss, eq);
             add_eq(name, std::make_shared<Equation>(eq));
+        } else if (command == "ambient") {
+            string r, g, b;
+            ss >> r >> g >> b;
+            ambient = make_shared<AmbientGenerator>(find_eq(r), find_eq(g), find_eq(b));
         } else if (command == "light") {
             string r, g, b, x, y, z;
             ss >> r >> g >> b >> x >> y >> z;
@@ -99,10 +115,10 @@ void MDL_Compiler::pre_process(std::istream &is) {
         } else if (command == "rotate") {
             string axis, degrees;
             ss >> axis >> degrees;
-            RotationMatrix::Axis typed_axis = axis == "x" ? RotationMatrix::X : axis == "y" ? RotationMatrix::Y : axis == "z" ? RotationMatrix::Z :
-                                                                              (throw_error(
-                                                                                      "Invalid axis [" + axis + "]",
-                                                                                      line_no), RotationMatrix::Z);
+            RotationMatrix::Axis typed_axis =
+                    axis == "x" ? RotationMatrix::X : axis == "y" ? RotationMatrix::Y : axis == "z" ? RotationMatrix::Z
+                                                                                                    : (throw_error(
+                                    "Invalid axis [" + axis + "]", line_no), RotationMatrix::Z);
             worlds.top()->commands.emplace_back(in_place_index<1>, make_shared<ROTATE>(typed_axis, find_eq(degrees)));
         } else if (command == "push") {
             double sf, ef;

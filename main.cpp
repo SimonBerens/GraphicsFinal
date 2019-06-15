@@ -1,6 +1,4 @@
-#include <iostream>
 #include "parsing/compiler.h"
-#include "draw.h"
 
 using namespace std;
 

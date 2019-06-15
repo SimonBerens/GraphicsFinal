@@ -26,15 +26,22 @@ unique_ptr<Light> LightGenerator::eval(double val) {
                               Point{x->eval(val), y->eval(val), z->eval(val)});
 }
 
+AmbientGenerator::AmbientGenerator(Eqptr red, Eqptr green, Eqptr blue) :
+        red(move(red)), green(move(green)), blue(move(blue)) {}
+
+std::unique_ptr<Color> AmbientGenerator::eval(double val) {
+    return make_unique<Color>(red->eval(val), green->eval(val), blue->eval(val));
+}
+
 DRAW::DRAW(Sgptr sgptr) : sgptr(move(sgptr)) {}
 
 unique_ptr<Surface> DRAW::surface(unsigned int frame_no) {
     return move(sgptr->eval(frame_no));
 }
 
-DRAW_SPHERE::DRAW_SPHERE(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr radius)
-        : DRAW(move(sgptr)), cx(move(cx)), cy(move(cy)), cz(move(cz)), radius(move(radius)) {}
 
+DRAW_SPHERE::DRAW_SPHERE(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr radius) :
+        DRAW(move(sgptr)), cx(move(cx)), cy(move(cy)), cz(move(cz)), radius(move(radius)) {}
 
 unique_ptr<FaceList> DRAW_SPHERE::matrix(unsigned int frame_no) {
     auto t = make_unique<FaceList>();
@@ -42,9 +49,9 @@ unique_ptr<FaceList> DRAW_SPHERE::matrix(unsigned int frame_no) {
     return t;
 }
 
+
 DRAW_TORUS::DRAW_TORUS(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr inner_r, Eqptr outer_r) :
         DRAW(move(sgptr)), cx(move(cx)), cy(move(cy)), cz(move(cz)), inner_r(move(inner_r)), outer_r(move(outer_r)) {}
-
 
 unique_ptr<FaceList> DRAW_TORUS::matrix(unsigned int frame_no) {
     auto t = make_unique<FaceList>();
@@ -59,7 +66,8 @@ DRAW_BOX::DRAW_BOX(Sgptr sgptr, Eqptr ulcx, Eqptr ulcy, Eqptr ulcz, Eqptr width,
 
 unique_ptr<FaceList> DRAW_BOX::matrix(unsigned int frame_no) {
     auto t = make_unique<FaceList>();
-    t->add_box({ulcx->eval(frame_no), ulcy->eval(frame_no), ulcz->eval(frame_no)}, width->eval(frame_no), width->eval(frame_no),
+    t->add_box({ulcx->eval(frame_no), ulcy->eval(frame_no), ulcz->eval(frame_no)}, width->eval(frame_no),
+               width->eval(frame_no),
                depth->eval(frame_no));
     return t;
 }
