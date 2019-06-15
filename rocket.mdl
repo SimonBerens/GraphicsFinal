@@ -1,17 +1,32 @@
 frames 360
 basename rocket
-constants brass 0.329412 0.7280392 0.992157 0.223529 0.568627 0.941176 0.027451 0.113725 0.2807843
-light 150 150 150 250 250 1000
+constants strong 0.2 0.4 1 0.2 0.4 1 0.2 0.4 1
 vary theta ( / ( * 2 pi x ) 360 )
-vary r ( sin ( * 5 theta ) )
+vary r ( * 200 ( sin ( * 3 theta ) ) )
 vary cx ( * r ( cos theta ) )
 vary cy ( * r ( sin theta ) )
-vary drdtheta ( * 5 ( cos ( * 5 theta ) ) )
-vary dydx  ( / ( + ( * r ( cos theta ) ) ( * ( sin theta ) drdtheta ) ) ( + ( * -1 r ( sin theta ) ) ( * ( cos theta ) drdtheta ) ) )
-vary yrot ( arctan dydx )
+vary drdtheta ( * 3 200 ( cos ( * 3 theta ) ) )
+vary dy ( + ( * r ( cos theta ) ) ( * ( sin theta ) drdtheta ) )
+vary dx ( + ( * -1 r ( sin theta ) ) ( * ( cos theta ) drdtheta ) )
+vary dydx  ( / dy dx )
+vary zrot ( + ( arctan dydx ) ( * pi ( ?> dy 0 ( ?> dx 0 0 -1 ) ( ?> dx 0 0 -1 ) ) ) )
+vary xrot ( - theta 1.5707 )
+vary rlx ( + cx 250 ( * 50 ( cos theta ) ) )
+vary glx ( + cx 250 ( * 50 ( cos ( + theta ( * ( / pi 3 ) 2 ) ) ) ) )
+vary blx ( + cx 250 ( * 50 ( cos ( + theta ( * ( / pi 3 ) 4 ) ) ) ) )
+vary rly ( + cx 250 ( * 50 ( sin theta ) ) )
+vary gly ( + cx 250 ( * 50 ( sin ( + theta ( * ( / pi 3 ) 2 ) ) ) ) )
+vary bly ( + cx 250 ( * 50 ( sin ( + theta ( * ( / pi 3 ) 4 ) ) ) ) )
+light 255 0 0 rlx rly 300
+light 0 255 0 glx gly 300
+light 0 0 255 blx bly 300
+ambient 150 150 150
 push 0 360
 move 250 250 250
 move cx cy 0
-scale 30 30 30
-mesh default :shuttle.obj
+rotate z zrot
+rotate x xrot
+rotate y 3.1415
+scale 10 10 10
+mesh strong :shuttle.obj
 pop

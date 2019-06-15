@@ -58,6 +58,15 @@ double Equation::Operation::eval() {
     } else if (op == "arctan") {
         param_num_check(1, "arctan");
         return atan(params[0]);
+    } else if (op == "abs") {
+        param_num_check(1, "abs");
+        return abs(params[0]);
+    } else if (op == "?>") {
+        param_num_check(4, "?>");
+        return params[0] > params[1] ? params[2] : params[3];
+    } else if (op == "?<") {
+        param_num_check(4, "?<");
+        return params[0] < params[1] ? params[2] : params[3];
     } else {
         Equation::Operation::throw_error("unknown operation [" + op + "]");
     }
@@ -99,7 +108,8 @@ double Equation::eval(double x) {
                 ops.top().params.push_back(res);
             } else if (token == "+" || token == "-" || token == "*" || token == "/" ||
                        token == "^" || token == "sin" || token == "cos" || token == "tan" ||
-                       token == "arcsin" || token == "arccos" || token == "arctan")
+                       token == "arcsin" || token == "arccos" || token == "arctan" || token == "abs" ||
+                       token == "?>" || token == "?<")
                 ops.top().op = token;
             else if (token == "x")
                 ops.top().params.push_back(x);
@@ -132,10 +142,7 @@ vector<string> Equation::find_linkables(const std::string &s) {
     string token;
     vector<string> link_names;
     while (ss >> token)
-        if (isalpha(token[0]) && all_of(token.begin(), token.end(), ::isalnum) &&
-            token != "sin" && token != "cos" && token != "tan" &&
-            token != "arcsin" && token != "arcsin" && token != "arctan" &&
-            token != "x" && token != "pi" && token != "e")
+        if (valid_name(token))
             link_names.push_back(token);
     return link_names;
 }
@@ -143,6 +150,13 @@ vector<string> Equation::find_linkables(const std::string &s) {
 Equation::Equation(string s, map<string, shared_ptr<Equation>> links) : s(std::move(s)), links(std::move(links)) {}
 
 Equation::Equation(string s) : s(std::move(s)) {}
+
+bool Equation::valid_name(const std::string &token) {
+    return isalpha(token[0]) && all_of(token.begin(), token.end(), ::isalnum) &&
+           token != "sin" && token != "cos" && token != "tan" &&
+           token != "arcsin" && token != "arcsin" && token != "arctan" && token != "abs" &&
+           token != "x" && token != "pi" && token != "e";
+}
 
 Equation::EquationParsingException::EquationParsingException(const string &message) :
         runtime_error("EquationParsingException: " + message) {}

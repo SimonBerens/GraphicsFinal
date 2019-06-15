@@ -1,5 +1,3 @@
-#include <utility>
-
 #include <memory>
 #include "command.h"
 
@@ -42,11 +40,11 @@ unique_ptr<Surface> DRAW::surface(unsigned int frame_no) {
 }
 
 
-FLW MESH::matrix(unsigned int frame_no) {
-    return FLW(in_place_index<1>, mesh);
-}
-
 MESH::MESH(const Sgptr &sgptr, shared_ptr<FaceList> mesh) : DRAW(sgptr), mesh(std::move(mesh)) {}
+
+FLW MESH::matrix(unsigned int frame_no) {
+    return FLW(in_place_index<0>, make_unique<FaceList>(*mesh));
+}
 
 DRAW_SPHERE::DRAW_SPHERE(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr radius) :
         DRAW(move(sgptr)), cx(move(cx)), cy(move(cy)), cz(move(cz)), radius(move(radius)) {}
