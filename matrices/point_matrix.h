@@ -14,8 +14,6 @@ public:
 
     size_type cols() const;
 
-    void add_point(const Point &p);
-
     Point operator[](size_type col) const;
 
     Point &operator[](size_type col);
@@ -23,6 +21,10 @@ public:
     virtual PointMatrix &mult(const ModifierMatrix &modifier);
 
     friend std::ostream &operator<<(std::ostream &os, const PointMatrix &matrix);
+
+protected:
+    void add_point(const Point &p);
+
 private:
     std::vector<Point> data;
 

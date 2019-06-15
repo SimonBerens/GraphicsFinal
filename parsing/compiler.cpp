@@ -9,17 +9,23 @@
 #include "../matrices/translation_matrix.h"
 #include "../matrices/scale_matrix.h"
 #include "command.h"
+#include "obj.h"
 
 using namespace std;
 
 MDL_Compiler::MDL_Compiler(const std::string &filename) :
         static_image(true), basename("default"), frames(1), base(make_shared<WORLD>(0, 0)),
         ambient(make_shared<AmbientGenerator>(make_shared<Equation>("255"),
-                                              make_shared<Equation>("255"), make_shared<Equation>("255"))) {
+                                              make_shared<Equation>("255"),
+                                              make_shared<Equation>("255"))) {
     ifstream file(filename);
+    if (file.fail())
+        throw_error("File does not exist", 0);
     try {
         pre_process(file);
         execute();
+    } catch (OBJ_FileParsingException &e) {
+        cout << e.what() << endl;
     } catch (Equation::EquationParsingException &e) {
         cout << e.what() << endl;
     } catch (MDL_ParsingException &e) {
@@ -52,9 +58,9 @@ const Eqptr MDL_Compiler::find_eq(const std::string &name) {
 
 void MDL_Compiler::pre_process(std::istream &is) {
     add_surface("default", std::make_shared<SurfaceGenerator>(
-            find_eq("1"), find_eq("1"), find_eq("1"),
-            find_eq("1"), find_eq("1"), find_eq("1"),
-            find_eq("1"), find_eq("1"), find_eq("1"))
+            find_eq("0.5"), find_eq("0.5"), find_eq("0.5"),
+            find_eq("0.5"), find_eq("0.5"), find_eq("0.5"),
+            find_eq("0.5"), find_eq("0.5"), find_eq("0.5"))
     );
     stack<WORLD::WORLD_PTR> worlds;
     worlds.push(base);
@@ -92,6 +98,13 @@ void MDL_Compiler::pre_process(std::istream &is) {
             ss >> r >> g >> b >> x >> y >> z;
             lights.push_back(make_shared<LightGenerator>(find_eq(r), find_eq(g), find_eq(b),
                                                          find_eq(x), find_eq(y), find_eq(z)));
+        } else if (command == "mesh") {
+            string surface_name, filename;
+            ss >> surface_name >> filename;
+            filename.erase(0, 1);
+            auto mesh_matrix = parse_obj_file(filename);
+            worlds.top()->commands.emplace_back(in_place_index<0>,
+                                                make_shared<MESH>(find_surface(surface_name), mesh_matrix));
         } else if (command == "sphere") {
             string surface_name, x, y, z, radius;
             ss >> surface_name >> x >> y >> z >> radius;

@@ -59,7 +59,6 @@ double Equation::Operation::eval() {
 }
 
 double Equation::eval(double x) {
-    // todo
     if (s == "x")
         return x;
     try {

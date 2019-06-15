@@ -52,12 +52,14 @@ private:
 
 typedef std::shared_ptr<AmbientGenerator> Agptr;
 
+typedef std::variant<std::unique_ptr<FaceList>, std::shared_ptr<FaceList>> FLW; // everything was perfect until mesh came along
+
 struct DRAW {
     explicit DRAW(Sgptr sgptr);
 
     std::unique_ptr<Surface> surface(unsigned int frame_no);
 
-    virtual std::unique_ptr<FaceList> matrix(unsigned int frame) = 0;
+    virtual FLW matrix(unsigned int frame) = 0;
 
 protected:
     Sgptr sgptr;
@@ -65,16 +67,19 @@ protected:
 
 typedef std::shared_ptr<DRAW> DRAW_PTR;
 
-struct MODIFY_CS {
-    virtual std::unique_ptr<ModifierMatrix> matrix(unsigned int frame) = 0;
-};
 
-typedef std::shared_ptr<MODIFY_CS> MODIFY_CS_PTR;
+struct MESH : DRAW {
+    MESH(const Sgptr &sgptr, std::shared_ptr<FaceList> mesh);
+
+    FLW matrix(unsigned int frame_no) override;
+
+    std::shared_ptr<FaceList> mesh;
+};
 
 struct DRAW_SPHERE : DRAW {
     DRAW_SPHERE(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr radius);
 
-    std::unique_ptr<FaceList> matrix(unsigned int frame_no) override;
+    FLW matrix(unsigned int frame_no) override;
 
 private:
     Eqptr cx, cy, cz, radius;
@@ -85,7 +90,7 @@ struct DRAW_TORUS : DRAW {
     DRAW_TORUS(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr inner_r,
                Eqptr outer_r);
 
-    std::unique_ptr<FaceList> matrix(unsigned int frame_no) override;
+    FLW matrix(unsigned int frame_no) override;
 
 private:
     Eqptr cx, cy, cz, inner_r, outer_r;
@@ -95,11 +100,18 @@ struct DRAW_BOX : DRAW {
     DRAW_BOX(Sgptr sgptr, Eqptr ulcx, Eqptr ulcy, Eqptr ulcz, Eqptr width,
              Eqptr height, Eqptr depth);
 
-    std::unique_ptr<FaceList> matrix(unsigned int frame_no) override;
+    FLW matrix(unsigned int frame_no) override;
 
 private:
     Eqptr ulcx, ulcy, ulcz, width, height, depth;
 };
+
+struct MODIFY_CS {
+    virtual std::unique_ptr<ModifierMatrix> matrix(unsigned int frame) = 0;
+};
+
+typedef std::shared_ptr<MODIFY_CS> MODIFY_CS_PTR;
+
 
 struct MOVE : MODIFY_CS {
     MOVE(Eqptr x, Eqptr y, Eqptr z);
@@ -162,8 +174,13 @@ struct WORLD {
             for (auto &cmd: commands) {
                 if (std::holds_alternative<DRAW_PTR>(cmd)) {
                     auto dptr = std::get<DRAW_PTR>(cmd);
-                    frame.draw_faces(dptr->matrix(relative_frame_no)->mult(base_cs), *dptr->surface(relative_frame_no),
-                                     *agptr->eval(relative_frame_no), lights);
+                    auto matrix_var = dptr->matrix(relative_frame_no);
+                    if (std::holds_alternative<std::unique_ptr<FaceList>>(matrix_var))
+                        frame.draw_faces(std::get<std::unique_ptr<FaceList>>(matrix_var)->mult(base_cs),
+                                *dptr->surface(relative_frame_no), *agptr->eval(relative_frame_no), lights);
+                    else
+                        frame.draw_faces(std::get<std::shared_ptr<FaceList>>(matrix_var)->mult(base_cs),
+                                         *dptr->surface(relative_frame_no), *agptr->eval(relative_frame_no), lights);
                 } else if (std::holds_alternative<MODIFY_CS_PTR>(cmd)) {
                     auto m = std::get<MODIFY_CS_PTR>(cmd)->matrix(relative_frame_no);
                     m->mult(base_cs);

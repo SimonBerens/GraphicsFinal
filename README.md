@@ -7,6 +7,7 @@
 * Relative equation parsing
 * Light command
 * Ambient command
+* Mesh command
 * Specification of object lifetime
 
 ### Specifics
@@ -52,18 +53,24 @@ pop
 at frame 10 example will be evaluated to be 0, at frame 11 to be 2, etc.
 This is the case for each individual object, regardless if multiple utilize the same equation.
 
+##### Defaults:
+basename defaults to `default`, ambient defaults to `255 255 255`, there is no default point light.
+
 ##### Minor Changes:
 This version of MDL does not support line, save, or display. Save will be automatically performed if frames is not set
 (to basename.png)
 
 Rotate now takes radians instead of degrees for better integration with equations.
+
+If the compiler detects the script is static (no vary or frames == 1) it will save to `<basename>.png` instead of 
+creating a gif.
 ##### Other:
 This entire program is written in modern c++17! No raw pointers or arrays, so copy constructors, move constructors, 
 and destructors are all trivial (compiler generated), so memory management is effectively automatic!
 
 ##### Things that Make Me Sad:
 * Due to parsing being hard without bison and our obsession with clean code, there is no option for omitting constants, 
-rather we have built in `constants default 1 1 1 1 1 1 1 1 1` for you to use.
+rather we have built in `constants default 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5` for you to use.
 
 * If you don't provide enough arguments to commands, things will probably not go well.
 

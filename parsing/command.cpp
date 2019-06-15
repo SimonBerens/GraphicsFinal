@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <memory>
 #include "command.h"
 
@@ -40,36 +42,42 @@ unique_ptr<Surface> DRAW::surface(unsigned int frame_no) {
 }
 
 
+FLW MESH::matrix(unsigned int frame_no) {
+    return FLW(in_place_index<1>, mesh);
+}
+
+MESH::MESH(const Sgptr &sgptr, shared_ptr<FaceList> mesh) : DRAW(sgptr), mesh(std::move(mesh)) {}
+
 DRAW_SPHERE::DRAW_SPHERE(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr radius) :
         DRAW(move(sgptr)), cx(move(cx)), cy(move(cy)), cz(move(cz)), radius(move(radius)) {}
 
-unique_ptr<FaceList> DRAW_SPHERE::matrix(unsigned int frame_no) {
+
+FLW DRAW_SPHERE::matrix(unsigned int frame_no) {
     auto t = make_unique<FaceList>();
     t->add_sphere({cx->eval(frame_no), cy->eval(frame_no), cz->eval(frame_no)}, radius->eval(frame_no));
-    return t;
+    return FLW(in_place_index<0>, move(t));
 }
-
 
 DRAW_TORUS::DRAW_TORUS(Sgptr sgptr, Eqptr cx, Eqptr cy, Eqptr cz, Eqptr inner_r, Eqptr outer_r) :
         DRAW(move(sgptr)), cx(move(cx)), cy(move(cy)), cz(move(cz)), inner_r(move(inner_r)), outer_r(move(outer_r)) {}
 
-unique_ptr<FaceList> DRAW_TORUS::matrix(unsigned int frame_no) {
+FLW DRAW_TORUS::matrix(unsigned int frame_no) {
     auto t = make_unique<FaceList>();
     t->add_torus({cx->eval(frame_no), cy->eval(frame_no), cz->eval(frame_no)}, inner_r->eval(frame_no),
                  outer_r->eval(frame_no));
-    return t;
+    return FLW(in_place_index<0>, move(t));
 }
 
 DRAW_BOX::DRAW_BOX(Sgptr sgptr, Eqptr ulcx, Eqptr ulcy, Eqptr ulcz, Eqptr width, Eqptr height, Eqptr depth) :
         DRAW(move(sgptr)), ulcx(move(ulcx)), ulcy(move(ulcy)), ulcz(move(ulcz)),
         width(move(width)), height(move(height)), depth(move(depth)) {}
 
-unique_ptr<FaceList> DRAW_BOX::matrix(unsigned int frame_no) {
+FLW DRAW_BOX::matrix(unsigned int frame_no) {
     auto t = make_unique<FaceList>();
     t->add_box({ulcx->eval(frame_no), ulcy->eval(frame_no), ulcz->eval(frame_no)}, width->eval(frame_no),
                width->eval(frame_no),
                depth->eval(frame_no));
-    return t;
+    return FLW(in_place_index<0>, move(t));
 }
 
 MOVE::MOVE(Eqptr x, Eqptr y, Eqptr z) : x(move(x)), y(move(y)), z(move(z)) {}
