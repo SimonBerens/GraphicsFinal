@@ -23,9 +23,6 @@ MDL_Compiler::MDL_Compiler(const std::string &filename) :
     } catch (MDL_ParsingException &e) {
         cout << e.what() << endl;
     }
-//    catch (ios_base::failure &e) {
-//        cout << e.what() << endl << "Most likely could not convert string to numeric type" << endl;
-//    }
 
 }
 
@@ -59,7 +56,6 @@ void MDL_Compiler::pre_process(std::istream &is) {
     while (getline(is, line)) {
         transform(line.begin(), line.end(), line.begin(), ::tolower);
         stringstream ss(line);
-//        ss.exceptions(ios::failbit);
         string command;
         ss >> command;
         if (command == "constants") {
@@ -86,18 +82,18 @@ void MDL_Compiler::pre_process(std::istream &is) {
             lights.push_back(make_shared<LightGenerator>(find_eq(r), find_eq(g), find_eq(b),
                                                          find_eq(x), find_eq(y), find_eq(z)));
         } else if (command == "sphere") {
-            string surface_name, x, y, z, radius; // todo optional surface name
+            string surface_name, x, y, z, radius;
             ss >> surface_name >> x >> y >> z >> radius;
             worlds.top()->commands.emplace_back(in_place_index<0>, make_shared<DRAW_SPHERE>(
                     find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(radius)));
         } else if (command == "torus") {
-            string surface_name, x, y, z, inner_r, outer_r; // todo optional surface name
+            string surface_name, x, y, z, inner_r, outer_r;
             ss >> surface_name >> x >> y >> z >> inner_r >> outer_r;
             worlds.top()->commands.emplace_back(in_place_index<0>, make_shared<DRAW_TORUS>(
                     find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(inner_r), find_eq(outer_r)
             ));
         } else if (command == "box") {
-            string surface_name, x, y, z, h, w, d; // todo optional surface name
+            string surface_name, x, y, z, h, w, d;
             ss >> surface_name >> x >> y >> z >> h >> w >> d;
             worlds.top()->commands.emplace_back(in_place_index<0>, make_shared<DRAW_BOX>(
                     find_surface(surface_name), find_eq(x), find_eq(y), find_eq(z), find_eq(h), find_eq(w),
@@ -122,7 +118,8 @@ void MDL_Compiler::pre_process(std::istream &is) {
             worlds.top()->commands.emplace_back(in_place_index<1>, make_shared<ROTATE>(typed_axis, find_eq(degrees)));
         } else if (command == "push") {
             double sf, ef;
-            ss >> sf >> ef;
+            if (!(ss >> sf >> ef))
+                throw_error("Could not parse double", line_no);
             auto world_ptr = make_shared<WORLD>(sf, ef);
             worlds.top()->commands.emplace_back(in_place_index<2>, world_ptr);
             worlds.push(world_ptr);
@@ -131,7 +128,8 @@ void MDL_Compiler::pre_process(std::istream &is) {
         } else if (command == "basename") {
             ss >> basename;
         } else if (command == "frames") {
-            ss >> frames;
+            if (!(ss >> frames))
+                throw_error("Could not parse unsigned int", line_no);
             base->end_frame = frames;
         }
         string test;
@@ -139,6 +137,8 @@ void MDL_Compiler::pre_process(std::istream &is) {
             throw_error("Extraneous characters for command [" + command + "]", line_no);
         line_no++;
     }
+    if (frames == 1)
+        static_image = true;
 }
 
 void MDL_Compiler::check_sys_call(int result) {

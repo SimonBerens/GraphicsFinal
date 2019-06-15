@@ -9,7 +9,7 @@ struct RotationMatrix : ModifierMatrix {
         X, Y, Z
     };
 
-    RotationMatrix(Axis axis, double degrees);
+    RotationMatrix(Axis axis, double rads);
 
 };
 

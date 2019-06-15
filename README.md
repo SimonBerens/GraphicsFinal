@@ -54,6 +54,7 @@ This is the case for each individual object, regardless if multiple utilize the 
 This version of MDL does not support line, save, or display. Save will be automatically performed if frames is not set
 (to basename.png)
 
+Rotate now takes radians instead of degrees for better integration with equations
 ##### Other:
 This entire program is written in modern c++17! No raw pointers or arrays, so copy constructors, move constructors, 
 and destructors are all trivial (compiler generated), so memory management is effectively automatic!
