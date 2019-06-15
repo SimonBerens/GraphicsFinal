@@ -16,11 +16,18 @@ light 255 0 255 300 200 0
 light 0 255 255 250 300 0
 vary rot ( / x 5 )
 vary zscaler ( + 1 ( * 2 ( / x 280 ) ) )
+vary dscaler ( / 1 ( + 1 ( * 2 ( / x 280 ) ) ) )
+
 
 push 0 280
 move 250 250 0
 move cx cy cz
-scale zscaler zscaler zscaler
 rotate z rot
+push 0 140
+scale zscaler zscaler zscaler
+box brass -20 20 0 20 -20 -20
+pop
+push 141 280
+scale dscaler dscaler dscaler
 box brass -20 20 0 20 -20 -20
 pop
