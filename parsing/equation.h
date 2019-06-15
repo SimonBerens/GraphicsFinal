@@ -10,9 +10,11 @@ class Equation {
 public:
     double eval(double x);
 
-    Equation(std::string s);
+    explicit Equation(std::string s);
 
     Equation(std::string s, std::map<std::string, std::shared_ptr<Equation>> links);
+
+    static bool valid_name(const std::string &token);
 
     static std::vector<std::string> find_linkables(const std::string &s);
 

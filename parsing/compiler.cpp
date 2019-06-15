@@ -79,10 +79,12 @@ void MDL_Compiler::pre_process(std::istream &is) {
                     find_eq(kdr), find_eq(kdg), find_eq(kdb),
                     find_eq(ksr), find_eq(ksg), find_eq(ksb))
             );
-        } else if (command == "vary") { // todo check name
+        } else if (command == "vary") {
             static_image = false;
             string name, eq;
             ss >> name;
+            if (!Equation::valid_name(name))
+                throw_error("Invalid knob name [" + name + "]", line_no);
             getline(ss, eq);
             vector<string> linkables = Equation::find_linkables(eq);
             map<string, Eqptr> links;
@@ -156,6 +158,11 @@ void MDL_Compiler::pre_process(std::istream &is) {
             if (!(ss >> frames))
                 throw_error("Could not parse unsigned int", line_no);
             base->end_frame = frames;
+        } else if (command == "#" || ss.fail()) {
+            line_no++;
+            continue;
+        } else {
+            throw_error("Unknown command [" + command + "]", line_no);
         }
         string test;
         if (ss >> test)

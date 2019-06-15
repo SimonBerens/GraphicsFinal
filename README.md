@@ -10,6 +10,11 @@
 * Mesh command
 * Specification of object lifetime
 
+### How to run
+`make [file=<filename>]`
+
+It will default to `simple_anim.mdl`
+
 ### Specifics
 ##### Vary:
 The new syntax for vary is `vary <name> <equation>`
@@ -19,7 +24,9 @@ Equations are in the form `<value>` or `( <operation> <equation> )`
 Values can be any of the following: `<double>`, `pi`, `e`, `x`, where x will be substituted for the relative frame
 of the calling object (see the push command). 
 
-Valid operations are: `+`, `-`, `*`, `/`, `^`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`
+Valid operations are: `+`, `-`, `*`, `/`, `^`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`, `abs`
+There are also conditional operators `?>` and `?<`, which should be used like so: 
+`( <op> <lhs> <rhs> <val if true> <val if false> ) `
 
 Note: Whitespace is important, parentheses, operations, and values must be separated by at least one space. In addition,
 certain operations (`-`, `/`, `^`, `sin`, `cos`, `tan`, `arcsin`, `arccos`, `arctan`) are undefined for all but one
@@ -53,6 +60,9 @@ pop
 at frame 10 example will be evaluated to be 0, at frame 11 to be 2, etc.
 This is the case for each individual object, regardless if multiple utilize the same equation.
 
+##### Mesh:
+Parses vertices/faces for .obj files with faces of arbitrary vertices.
+
 ##### Defaults:
 basename defaults to `default`, ambient defaults to `255 255 255`, there is no default point light.
 
@@ -74,4 +84,4 @@ rather we have built in `constants default 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5` 
 
 * If you don't provide enough arguments to commands, things will probably not go well.
 
-* If you want you can cause an infinite loop by making equations rely on eachother
+* If you want you can cause an infinite loop by making equations rely on each other
