@@ -41,7 +41,7 @@ constants example example 0.5 example 0.999 0.1 0 example 1
 move example example example
 torus 0 0 example example 100
 ```
-This also means that you can no longer write `move 500 500 500 <knob>`
+This also means that you can no longer write `move 500 500 500 <knob>`.
 
 Note: The declaration for the knob (and constant) must precede any of its uses.
 
