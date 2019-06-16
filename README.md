@@ -19,7 +19,7 @@ It will default to `simple_anim.mdl`
 ##### Vary:
 The new syntax for vary is `vary <name> <equation>`
 
-Equations are in the form `<value>` or `( <operation> <equation> )`
+Equations are in the form `<value>` or `( <operation> <equation-list> )`
 
 Values can be any of the following: `<double>`, `pi`, `e`, `x`, where x will be substituted for the relative frame
 of the calling object (see the push command). 
